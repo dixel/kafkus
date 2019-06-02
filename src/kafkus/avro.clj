@@ -35,9 +35,8 @@
        :edn-schema
        :fields)))
 
-(comment
-  (def sample-schema
-    "{
+(def sample-schema
+  "{
    \"type\" : \"record\",
    \"namespace\" : \"Tutorialspoint\",
    \"name\" : \"Employee\",
@@ -46,10 +45,10 @@
       { \"name\" : \"Age\" , \"type\" : \"int\" }
    ]
   }"
-    )
+  )
 
-  (def complex-schema
-    "
+(def complex-schema
+  "
   {
   \"name\": \"myRecord\",
   \"type\": \"record\",
@@ -75,4 +74,4 @@
   }
   ")
 
-  )
+

@@ -1,8 +1,10 @@
 (ns kafkus.api
   (:require [kafkus.handlers :as handlers]
+            [kafkus.sente :refer [sente]]
             [ring.util.response :as r]
             [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [ring.middleware.params :refer  [wrap-params]]
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [aleph.http :as http]
             [mount.core :as mount]
             [cheshire.core :as json]
@@ -20,8 +22,10 @@
 
 (defn app  [request]
   (log/debugf "request: %s"  (:uri request))
-  (case  (:uri request)
-    "/ping" (handlers/pong request)
+  (case [(:method request) (:uri request)]
+    [:get "/ping"] (handlers/pong request)
+    [:get "chsk"]  ((get sente :ring-ajax-get-or-ws-handshake) request)
+    [:post "chsk"] ((get sente :ring-ajax-post) request)
     {:status 400 :body (str "bad request: " (:uri request))}))
 
 (mount/defstate api
@@ -30,7 +34,8 @@
            (http/start-server (-> app
                                   wrap-json-body
                                   wrap-json-response
-                                  wrap-params)
+                                  wrap-params
+                                  wrap-keyword-params)
                               {:port http-port
                                :host http-host}))
   :stop (.close api))
