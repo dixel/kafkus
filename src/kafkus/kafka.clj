@@ -23,6 +23,10 @@
   {:spec string?
    :default "localhost:9092"})
 
+(conf/def default-rate "default number of messages per second shown"
+  {:spec int?
+   :default 10})
+
 (defn get-this-schema-deserializer [schema]
   (fn [ba _]
     (if (nil? ba)
@@ -85,9 +89,9 @@
     (->> (keys @(K.admin/topics admin {::K/internal? false}))
          (filter #(not (str/starts-with? % "_"))))))
 
-(defn consume-from-topic
+(defn consume!
   "given configuration, start consuming data from the topic into a core-async channel"
-  [{:keys [bootstrap-servers mode channel control rate] :as config}]
+  [{:keys [bootstrap-servers mode channel rate] :as config}]
   (let [consumer
         (K.in/consumer {::K/nodes (get-nodes-from-bootstraps bootstrap-servers)
                         ::K/deserializer.key (get K/deserializers :string)
@@ -95,22 +99,30 @@
                         ::K.in/configuration (walk/stringify-keys config)})
         control-channel (a/chan)]
     (K.in/register-for consumer [(get config :topic)])
-    (a/go-loop []
-      (doseq [record (K.in/poll consumer)]
-        (when (not (nil? (::K/value record)))
-          (a/timeout (/ (.toMillis TimeUnit/SECONDS 1) rate))
-          (a/>! channel (::K/value record))))
-      (if (nil? (a/poll! control-channel))
-        (recur)
+    (a/go-loop [[record & records] (K.in/poll consumer
+                                              {::K/timeout [0 :milliseconds]})]
+      (when-let [value (::K/value record)]
+        (a/<! (a/timeout (/ (.toMillis TimeUnit/SECONDS 1)
+                            (or rate default-rate))))
+        (a/>! channel value))
+      (cond
+        (= :stop (a/poll! control-channel))
         (do
           (log/infof "terminating consumer %s" consumer)
-          (.close consumer))))
+          (a/close! control-channel)
+          (.close consumer))
+
+        (nil? records)
+        (recur (K.in/poll consumer {::K/timeout [0 :milliseconds]}))
+
+        :else
+        (recur records)))
     control-channel))
 
 (defn stop! [control-channel]
-  (a/>!! control-channel :stop))
+  (a/go (a/>! control-channel :stop)))
 
-(defn produce-to-topic
+(defn produce!
   [{:keys [bootstrap-servers topic payload mode schema]
     :as config}]
   (with-open [producer
