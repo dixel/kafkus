@@ -1,5 +1,23 @@
 (ns kafkus.avro
-  (:require [deercreeklabs.lancaster :as avro]))
+  (:require [deercreeklabs.lancaster :as avro]
+            [clojure.java.io :as io]
+            [cyrus-config.core :as conf]
+            [cheshire.core :as json]
+            [clojure.string :as str]))
+
+(conf/def avro-schemas-path "path in the local OS to the folder with avro-schemas"
+  {:spec string?
+   :default "./"})
+
+(defn get-schemas []
+  (let [dir (io/file avro-schemas-path)
+        files (file-seq dir)]
+    (->> files
+         (map #(.getAbsolutePath %))
+         (filter #(str/ends-with? % ".asvc"))
+         (map #(slurp %))
+         (map #(identity [(get (json/decode % true) :name) %]))
+         (into {}))))
 
 (defn type-parser [parse-fields-fun f]
   (let [field-type (:type f)
@@ -73,5 +91,3 @@
   ]
   }
   ")
-
-
