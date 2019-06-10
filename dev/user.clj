@@ -36,6 +36,7 @@
      :auto.offset.reset "earliest"
      :enable.auto.commit false
      :topic "kafkus-sample-raw-avro"
+     :rate 1
      :payload (kavro/sample-data kavro/complex-schema)
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
@@ -45,7 +46,7 @@
      :channel input
      :auto.offset.reset "earliest"
      :enable.auto.commit false
-     :topic "kafkus-sample-schema-registry"
+     :topic "kafkus-sample-schema-registry-new"
      :schema "{
         \"type\": \"record\",
         \"name\": \"value_schem\",
@@ -62,11 +63,24 @@
           \"name\": \"additionalField\",
           \"type\": \"string\",
           \"default\": \"\"
+        },
+        {
+          \"name\": \"additionalExtraField\",
+          \"type\": \"string\",
+          \"default\": \"\"
+        },
+        {
+          \"name\": \"newAdditionalField\",
+          \"type\": \"string\",
+          \"default\": \"\"
         }
         ]
      }"
      :schema-registry-url "http://localhost:8081"
-     :payload {:id 777 :name "Amazing User" :additionalField "testcompat"}
+     :rate 10
+     :payload {:id 777 :name "Amazing User" :additionalField "testcompat"
+               :newAdditionalField "something-new"
+               :additionalExtraField "newString"}
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
   (def consumer
