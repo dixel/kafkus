@@ -2,9 +2,12 @@
   (:require [kafkus.handlers :as handlers]
             [kafkus.sente :refer [sente]]
             [ring.util.response :as r]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [ring.middleware.params :refer  [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+            [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.util.response :refer [resource-response content-type]]
             [aleph.http :as http]
             [mount.core :as mount]
             [cheshire.core :as json]
@@ -21,17 +24,20 @@
    :default "127.0.0.1"})
 
 (defn app  [request]
-  (log/debugf "request: %s"  (:uri request))
-  (case [(:method request) (:uri request)]
+  (log/debugf "request: %s"  [(:request-method request) (:uri request)])
+  (case [(:request-method request) (:uri request)]
+    [:get "/"] (some-> (resource-response "index.html" {:root "public"})
+                       (content-type "text/html; charset=utf-8"))
     [:get "/ping"] (handlers/pong request)
-    [:get "chsk"]  ((get sente :ring-ajax-get-or-ws-handshake) request)
-    [:post "chsk"] ((get sente :ring-ajax-post) request)
+    [:get "/chsk"]  ((get sente :ring-ajax-get-or-ws-handshake) request)
+    [:post "/chsk"] ((get sente :ring-ajax-post) request)
     {:status 400 :body (str "bad request: " (:uri request))}))
 
 (mount/defstate api
   :start (do
            (log/info "starting the API component...")
            (http/start-server (-> app
+                                  (wrap-defaults site-defaults)
                                   wrap-json-body
                                   wrap-json-response
                                   wrap-params

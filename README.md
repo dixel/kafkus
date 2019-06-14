@@ -23,15 +23,5 @@ lein repl
 
 ```
 
-By default, database methods are defined in [](./resources/queries/example.sql) and loaded into the driver adapters namespaces.
-
-```clojure
-```
-
-The endpoint that targets this database method is exposed here:
-```bash
-curl http://localhost:4040/sample?name=test&age=25&date=2018-11-11
-```
-
 
 ## License

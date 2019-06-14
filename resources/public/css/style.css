@@ -1,0 +1,60 @@
+h1 {
+  background-color: red;
+}
+
+select {
+  background-color: darkgrey;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80%;
+  border: none;
+}
+
+input {
+  background-color: lightgrey;
+  width: 80%;
+  border: none;
+}
+
+button {
+  background-color: lightgrey;
+  border: none;
+}
+
+#wrap {
+  width: 1220px;
+  margin: 0 auto;
+}
+
+#left-panel {
+  width: 200px;
+  height: 90vh;
+  padding: 5px;
+  background-color: grey;
+  float: left;
+}
+
+#logo {
+  font-size: 30px;
+  font-family: monospace;
+  margin-right: 30px;
+  margin-left: 10px;
+  background-color: green;
+}
+
+#logo1 {
+  background-color: black;
+  padding: 5px;
+  color: white;
+}
+
+#middle-panel {
+  width: 600px;
+  height: 90vh;
+  padding: 5px;
+  overflow-y: scroll;
+  background-color: black;
+  color: white;
+  float: left;
+}

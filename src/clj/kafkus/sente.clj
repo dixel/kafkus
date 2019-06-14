@@ -8,7 +8,8 @@
   :start (let [{:keys [ch-recv send-fn connected-uids
                        ajax-post-fn ajax-get-or-ws-handshake-fn]}
                (s/make-channel-socket! (get-sch-adapter)
-                                       {:user-id-fn #(:client-id %)})]
+                                       {:csrf-token-fn nil
+                                        :user-id-fn #(:client-id %)})]
            (log/info "starting sente channels...")
            {:ring-ajax-post ajax-post-fn
             :ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn
