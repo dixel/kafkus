@@ -29,6 +29,8 @@
       (when (not (nil? payload))
         (recur))))
 
+  (def incer (atom 0))
+
   (def plain-avro-schema-config
     {:bootstrap-servers "localhost:9092"
      :mode "avro-raw"
@@ -41,7 +43,7 @@
      :payload (kavro/sample-data kavro/complex-schema)
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
-  (def schema-registry-config
+  (defn get-schema-registry-config []
     {:bootstrap-servers "localhost:9092"
      :mode "avro-schema-registry"
      :channel input
@@ -79,7 +81,7 @@
      }"
      :schema-registry-url "http://localhost:8081"
      :rate 1
-     :payload {:id 777 :name "Amazing User" :additionalField "testcompat"
+     :payload {:id (swap! incer inc) :name "Amazing User" :additionalField "testcompat"
                :newAdditionalField "something-new"
                :additionalExtraField "newString"}
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})

@@ -158,6 +158,7 @@
     (let [{:keys [event]} (a/<! (:receive @state))
           [msg-type message] event
           [msg-tag msg] message]
+      (log/debug "[cljs] got message: " [msg-tag msg])
       (when (and (= msg-type :chsk/state)
                  (:first-open? msg))
         ((:send! @state) [:kafkus/list-schemas (get-config)]))

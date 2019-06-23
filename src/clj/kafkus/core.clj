@@ -2,6 +2,8 @@
   (:gen-class)
   (:require [mount.core :as mount]
             [kafkus.api :refer [api]]
+            [kafkus.sente :refer [sente]]
+            [kafkus.server :refer [server]]
             [taoensso.timbre :as log]
             [cyrus-config.core :as conf]
             [clojure.string :as str]))

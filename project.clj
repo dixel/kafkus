@@ -21,6 +21,11 @@
   :main kafkus.core
   :source-paths ["src/clj", "src/cljs"]
   :uberjar-name "kafkus.jar"
+  :cljsbuild {:builds [{:id "min"
+                        :source-paths ["src/cljs"]
+                        :compiler
+                        {:output-to "resources/public/cljs-out/kafkus.js"
+                         :optimizations :advanced}}]}
   :profiles {:dev
              {:source-paths ["dev"]
               :repl-options {:init-ns user
@@ -33,5 +38,9 @@
               :aliases {"fig" ["trampoline" "run" "-m" "figwheel.main"]
                         "build-dev" ["trampoline" "run" "-m" "figwheel.main" "-b" "dev" "-r"]}
               :plugins [[lein-ancient "0.6.15"]
+                        [lein-cljsbuild "1.1.7"]
                         [lein-kibit "0.1.5"]
-                        [jonase/eastwood "0.2.5"]]}})
+                        [jonase/eastwood "0.2.5"]]}
+             :uberjar {:aot :all
+                       :prep-tasks ["compile"
+                                    ["cljsbuild" "once" "min"]]}})

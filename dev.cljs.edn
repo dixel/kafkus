@@ -1,2 +1,3 @@
 ^{:css-dirs ["resources/public/css"]}
-{:main kafkus.core}
+{:main kafkus.core
+ :output-to "target/public/cljs-out/kafkus.js"}
