@@ -12,7 +12,10 @@
 
 (require '[kafkus.api :as api])
 
-(conf/reload-with-override! (read-string (slurp ".config.edn")))
+(try
+  (conf/reload-with-override! (read-string (slurp ".config.edn")))
+  (catch Exception e
+    :pass))
 
 (defn start []
   (mount/start))
