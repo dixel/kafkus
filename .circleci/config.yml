@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/kafkus
+    branches:
+      only:
+        - master
+    docker:
+      - image: circleci/clojure:lein-2.7.1
+    environment:
+      LEIN_ROOT: nbd
+      JVM_OPTS: -Xmx3200m
+      PROJECT: dixel/kafkus
+    steps:
+      - checkout
+      - restore_cache:
+          key: kafkus-{{ checksum "project.clj" }}
+      - run: lein deps
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: kafkus-{{ checksum "project.clj" }}
+      - run: lein do test, uberjar
+      - setup_remote_docker
+      - run:
+          name: Publishing to docker hub
+          command: |
+            VERSION=`head -n 1 project.clj | awk '{print $3}' | tr -d '"'`.$CIRCLE_BUILD_NUM
+            docker build -t ${PROJECT}:${VERSION} .
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push ${PROJECT}:${VERSION}
