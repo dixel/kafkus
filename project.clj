@@ -16,6 +16,7 @@
                  [deercreeklabs/lancaster "0.6.6"]
                  [reagent-forms "0.5.43"]
                  [ring "1.6.3"]
+                 [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.4.0"]]
   :main kafkus.core
   :source-paths ["src/clj", "src/cljs"]
