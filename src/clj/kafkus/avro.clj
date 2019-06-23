@@ -9,7 +9,7 @@
   {:spec string?
    :default "./"})
 
-(defn get-schemas []
+(defn list-schemas []
   (let [dir (io/file avro-schemas-path)
         files (file-seq dir)]
     (->> files

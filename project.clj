@@ -14,6 +14,7 @@
                  [dvlopt/kafka "1.3.0-beta0"]
                  [ovotech/kafka-avro-confluent "2.1.0-1"]
                  [deercreeklabs/lancaster "0.6.6"]
+                 [reagent-forms "0.5.43"]
                  [ring "1.6.3"]
                  [ring/ring-json "0.4.0"]]
   :main kafkus.core
@@ -21,9 +22,11 @@
   :uberjar-name "kafkus.jar"
   :profiles {:dev
              {:source-paths ["dev"]
-              :repl-options {:init-ns user}
+              :repl-options {:init-ns user
+                             :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
               :dependencies [[com.bhauman/figwheel-main "0.2.0"]
-                             [com.bhauman/rebel-readline-cljs "0.1.4"]]
+                             [com.bhauman/rebel-readline-cljs "0.1.4"]
+                             [cider/piggieback "0.4.1"]]
               :resource-paths ["target" "resources"]
               :clean-targets ^{:protect false} ["target"]
               :aliases {"fig" ["trampoline" "run" "-m" "figwheel.main"]

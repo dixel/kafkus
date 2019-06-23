@@ -25,7 +25,7 @@
 
 (conf/def default-rate "default number of messages per second shown"
   {:spec int?
-   :default 10})
+   :default 1})
 
 (defn get-this-schema-deserializer [schema]
   (fn [ba _]
@@ -46,9 +46,11 @@
          (map #(identity [(first %) (Integer. (second %))])))))
 
 (defn get-schema-registry-deserializer [config]
-  (let [deser (des/->avro-deserializer (->> config
-                                            :schema-registry-url
-                                            (assoc {} :schema-registry/base-url)))]
+  (let [deser (des/->avro-deserializer
+               {:schema-registry/base-url
+                (or
+                 (get config :schema-registry-url)
+                 default-schema-registry-url)})]
     (fn [data _]
       (if (nil? data)
         nil
@@ -63,7 +65,8 @@
 (defn get-schema-registry-serializer [config]
   (let [serializer (ser/->avro-serializer
                     {:schema-registry/base-url
-                     (:schema-registry-url config)})]
+                     (or
+                      (get config :schema-registry-url) default-schema-registry-url)})]
     (fn [data _]
       (if (nil? data)
         nil
@@ -85,26 +88,30 @@
   [{:keys [bootstrap-servers] :as config}]
   (with-open [admin
               (K.admin/admin
-               {::K/nodes (get-nodes-from-bootstraps bootstrap-servers)})]
+               {::K/nodes (get-nodes-from-bootstraps (or bootstrap-servers
+                                                         default-bootstrap-server))})]
     (->> (keys @(K.admin/topics admin {::K/internal? false}))
          (filter #(not (str/starts-with? % "_"))))))
 
 (defn consume!
   "given configuration, start consuming data from the topic into a core-async channel"
-  [{:keys [bootstrap-servers mode channel rate] :as config}]
-  (let [consumer
-        (K.in/consumer {::K/nodes (get-nodes-from-bootstraps bootstrap-servers)
-                        ::K/deserializer.key (get K/deserializers :string)
-                        ::K/deserializer.value (get-mode-deserializer mode config)
-                        ::K.in/configuration (walk/stringify-keys config)})
+  [{:keys [bootstrap-servers mode callback rate] :as config}]
+  (let [consumer-config {::K/nodes (get-nodes-from-bootstraps bootstrap-servers)
+                         ::K/deserializer.key (get K/deserializers :string)
+                         ::K/deserializer.value (get-mode-deserializer mode config)
+                         ::K.in/configuration (walk/stringify-keys config)}
+        consumer
+        (K.in/consumer consumer-config)
         control-channel (a/chan)]
+    (log/info "starting consumer: %s" consumer-config)
     (K.in/register-for consumer [(get config :topic)])
     (a/go-loop [[record & records] (K.in/poll consumer
                                               {::K/timeout [0 :milliseconds]})]
       (when-let [value (::K/value record)]
         (a/<! (a/timeout (/ (.toMillis TimeUnit/SECONDS 1)
                             (or rate default-rate))))
-        (a/>! channel value))
+        (log/debugf "kafka message: %s" value)
+        (callback value))
       (cond
         (= :stop (a/poll! control-channel))
         (do

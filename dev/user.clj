@@ -3,6 +3,7 @@
             [cyrus-config.core :as conf]
             [kafkus.avro :as kavro]
             [kafkus.kafka :as kafka]
+            [kafkus.server :as server]
             [clojure.core.async :as a]
             [taoensso.timbre :as log]))
 
@@ -77,11 +78,11 @@
         ]
      }"
      :schema-registry-url "http://localhost:8081"
-     :rate 10
+     :rate 1
      :payload {:id 777 :name "Amazing User" :additionalField "testcompat"
                :newAdditionalField "something-new"
                :additionalExtraField "newString"}
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
   (def consumer
-    (kafka/consume-from-topic debug-avro-schemas-config)))
+    (kafka/consume! schema-registry-config)))

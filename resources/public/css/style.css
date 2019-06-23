@@ -1,25 +1,51 @@
+
 h1 {
   background-color: red;
 }
 
 select {
   background-color: darkgrey;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  appearance: none;
-  width: 80%;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  padding: 2px;
+  width: 82%;
   border: none;
+  margin: 2px;
+  font-size: 15px;
+  font-family: monospace;
 }
 
 input {
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  padding: 2px;
   background-color: lightgrey;
   width: 80%;
   border: none;
+  margin: 2px;
+  font-size: 15px;
+  font-family: monospace;
+}
+
+label {
+    font-family: monospace;
+    font-size: 15px;
+    display: inline-block;
+    width: 80%;
+    text-align: right;
+    margin: 2px;
 }
 
 button {
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
   background-color: lightgrey;
   border: none;
+  margin: 2px;
+  padding: 4px;
 }
 
 #wrap {
