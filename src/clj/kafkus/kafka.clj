@@ -31,7 +31,11 @@
   (fn [ba _]
     (if (nil? ba)
       nil
-      (avro/deserialize-same schema ba))))
+      (try
+        (avro/deserialize-same schema ba)
+        (catch Exception e
+          {:error (format "failed to deserialize %s with provided schema: %s"
+                          (String. ba) (.getMessage e))})))))
 
 (defn get-this-schema-serializer [schema]
   (fn [data _]

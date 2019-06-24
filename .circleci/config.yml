@@ -26,6 +26,7 @@ jobs:
           name: Publishing to docker hub
           command: |
             VERSION=`head -n 1 project.clj | awk '{print $3}' | tr -d '"'`.$CIRCLE_BUILD_NUM
-            docker build -t ${PROJECT}:${VERSION} .
+            docker build -t ${PROJECT}:${VERSION} -t ${PROJECT}:latest .
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push ${PROJECT}:${VERSION}
+            docker push ${PROJECT}:latest

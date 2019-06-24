@@ -69,6 +69,7 @@
       {:on-click
        (fn []
          (reset! play? true)
+         (swap! state #(assoc % :middle '()))
          (send! [:kafkus/stop :stop])
          (send! [:kafkus/start (get-config)]))}
       [:i {:class "fas fa-play"
