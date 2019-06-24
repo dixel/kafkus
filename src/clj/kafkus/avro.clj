@@ -14,7 +14,7 @@
         files (file-seq dir)]
     (->> files
          (map #(.getAbsolutePath %))
-         (filter #(str/ends-with? % ".asvc"))
+         (filter #(str/ends-with? % ".avsc"))
          (map #(slurp %))
          (map #(identity [(get (json/decode % true) :name) %]))
          (into {}))))
