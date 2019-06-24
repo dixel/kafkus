@@ -12,7 +12,7 @@ docker-compose up -d
 or
 
 ```bash
-docker run -p 4040:4040 -v $PWD:/tmp -e LOG_LEVEL=debug -e AVRO_SCHEMAS_PATH=/tmp -ti dixel/kafkus:0.1.0-SNAPSHOT.5
+docker run -p 4040:4040 -v $PWD:/tmp -e LOG_LEVEL=debug -e AVRO_SCHEMAS_PATH=/tmp -ti dixel/kafkus
 ```
 
 ## License
