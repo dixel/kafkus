@@ -16,7 +16,11 @@
          (map #(.getAbsolutePath %))
          (filter #(str/ends-with? % ".avsc"))
          (map #(slurp %))
-         (map #(identity [(get (json/decode % true) :name) %]))
+         (map #(identity [(try
+                            (get (json/decode % true) :name)
+                            (catch Exception e
+                              (log/errorf "failed to parse schema: %s" %)
+                              "failed-to-parse-this-schema")) %]))
          (into {}))))
 
 (defn type-parser [parse-fields-fun f]
