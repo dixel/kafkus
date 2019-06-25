@@ -4,7 +4,6 @@ h1 {
 }
 
 select {
-  background-color: darkgrey;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;

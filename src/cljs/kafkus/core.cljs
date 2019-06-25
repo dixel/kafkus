@@ -91,7 +91,10 @@
 
 (defn dyn-selector [field items & {:keys [hidden-fn disabled-fn]}]
   [:select
-   {:on-change (fn [e]
+   {:style {:color (if (nil? (get @state field))
+                     "grey"
+                     "black")}
+    :on-change (fn [e]
                  (swap! state #(assoc % field
                                       (-> e .-target .-value))))
     :hidden (not (if hidden-fn
@@ -100,8 +103,9 @@
     :disabled (if disabled-fn
                 (disabled-fn)
                 @play?)}
-   [:option {:selected "true"
-             :disabled "disabled"} field]
+   [:option.defaultOption {:selected "true"
+                           :hidden "true"
+                           :disabled "disabled"} field]
    (for [i items]
      ^{:key i}
      [:option i])])
@@ -164,8 +168,8 @@
                  (:first-open? msg))
         ((:send! @state) [:kafkus/list-schemas (get-config)]))
       (case [msg-type msg-tag]
-        [:chsk/recv :kafkus/list-topics] (reset! topics msg)
-        [:chsk/recv :kafkus/list-schemas] (reset! schemas msg)
+        [:chsk/recv :kafkus/list-topics] (reset! topics (sort msg))
+        [:chsk/recv :kafkus/list-schemas] (reset! schemas (sort msg))
         [:chsk/recv :kafkus/error] (reset! middle [msg])
         [:chsk/recv :kafkus/message] (swap!
                                       middle
