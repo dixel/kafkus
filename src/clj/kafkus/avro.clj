@@ -3,6 +3,7 @@
             [clojure.java.io :as io]
             [cyrus-config.core :as conf]
             [cheshire.core :as json]
+            [taoensso.timbre :as log]
             [clojure.string :as str]))
 
 (conf/def avro-schemas-path "path in the local OS to the folder with avro-schemas"
