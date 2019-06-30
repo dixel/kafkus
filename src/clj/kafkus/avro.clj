@@ -20,7 +20,7 @@
          (map #(identity [(try
                             (get (json/decode % true) :name)
                             (catch Exception e
-                              (log/errorf "failed to parse schema: %s" %)
+                              (log/errorf "failed to parse schema %s: %s" % (.getMessage e))
                               "failed-to-parse-this-schema")) %]))
          (into {}))))
 
