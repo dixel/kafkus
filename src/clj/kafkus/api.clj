@@ -25,7 +25,6 @@
 
 (defn app  [request]
   (log/debugf "request: %s"  [(:request-method request) (:uri request)])
-  (log/debugf "full request: %s" request)
   (case [(:request-method request) (:uri request)]
     [:get "/"] (some-> (resource-response "index.html" {:root "public"})
                        (content-type "text/html; charset=utf-8"))
