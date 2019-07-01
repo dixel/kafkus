@@ -92,7 +92,7 @@ services:
       KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
 
   kafkus:
-    build: .
+      image: dixel/kafkus:latest
     hostname: kafkus
     depends_on:
       - broker

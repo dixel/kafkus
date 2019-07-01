@@ -25,11 +25,14 @@
 
 (defn app  [request]
   (log/debugf "request: %s"  [(:request-method request) (:uri request)])
+  (log/debugf "full request: %s" request)
   (case [(:request-method request) (:uri request)]
     [:get "/"] (some-> (resource-response "index.html" {:root "public"})
                        (content-type "text/html; charset=utf-8"))
     [:get "/ping"] (handlers/pong request)
-    [:get "/chsk"]  ((get sente :ring-ajax-get-or-ws-handshake) request)
+    [:get "/chsk"] (let [response ((get sente :ring-ajax-get-or-ws-handshake) request)]
+                     (log/debugf "response: %s" response)
+                     response)
     [:post "/chsk"] ((get sente :ring-ajax-post) request)
     {:status 400 :body (str "bad request: " (:uri request))}))
 
@@ -37,11 +40,11 @@
   :start (do
            (log/info "starting the API component...")
            (http/start-server (-> app
+                                  wrap-params
+                                  wrap-keyword-params
                                   (wrap-defaults site-defaults)
                                   wrap-json-body
-                                  wrap-json-response
-                                  wrap-params
-                                  wrap-keyword-params)
+                                  wrap-json-response)
                               {:port http-port
                                :host http-host}))
   :stop (.close api))

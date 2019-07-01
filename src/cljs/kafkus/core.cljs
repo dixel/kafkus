@@ -16,7 +16,7 @@
   (let [{:keys [chsk ch-recv send-fn state]}
         (sente/make-channel-socket! "/chsk"
                                     nil
-                                    {:type :auto})]
+                                    {:type :ajax})]
     (atom {:receive ch-recv
            :play? false
            :send! send-fn
@@ -94,6 +94,7 @@
    {:style {:color (if (nil? (get @state field))
                      "grey"
                      "black")}
+    :id field
     :on-change (fn [e]
                  (swap! state #(assoc % field
                                       (-> e .-target .-value))))
@@ -158,6 +159,33 @@
         [:pre item]
         [:hr]])]]])
 
+(defn set-defaults [defaults]
+  (let [{:keys [mode rate limit]} defaults]
+    (set! (.-value (.getElementById js/document "bootstrap.servers"))
+          (get defaults :bootstrap.servers))
+    (set! (.-value (.getElementById js/document "mode"))
+          mode)
+    (set! (.-value (.getElementById js/document "rate"))
+          rate)
+    (set! (.-value (.getElementById js/document "limit"))
+          limit)
+    (set! (.-value (.getElementById js/document "auto.offset.reset"))
+          (get defaults :auto.offset.reset))
+    (swap! state #(-> %
+                      (assoc :rate rate
+                             :auto.offset.reset (get defaults :auto.offset.reset)
+                             :limit limit
+                             :mode mode)
+                      (assoc-in [:bootstrap :servers]
+                                (get defaults :bootstrap.servers))))))
+
+(comment
+  (set-defaults {:bootstrap.servers "123123"
+                 :rate 1
+                 :mode "raw"
+                 :limit 100
+                 :auto.offset.reset "latest"}))
+
 (defn start-server []
   (a/go-loop []
     (let [{:keys [event]} (a/<! (:receive @state))
@@ -166,11 +194,13 @@
       (log/debug "[cljs] got message: " [msg-tag msg])
       (when (and (= msg-type :chsk/state)
                  (:first-open? msg))
-        ((:send! @state) [:kafkus/list-schemas (get-config)]))
+        ((:send! @state) [:kafkus/list-schemas (get-config)])
+        ((:send! @state) [:kafkus/get-defaults {}]))
       (case [msg-type msg-tag]
         [:chsk/recv :kafkus/list-topics] (reset! topics (sort msg))
         [:chsk/recv :kafkus/list-schemas] (reset! schemas (sort msg))
         [:chsk/recv :kafkus/error] (reset! middle [msg])
+        [:chsk/recv :kafkus/defaults] (set-defaults msg)
         [:chsk/recv :kafkus/message] (swap!
                                       middle
                                       (fn [m]

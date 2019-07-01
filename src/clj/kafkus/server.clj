@@ -49,6 +49,14 @@
 (defn list-kafkus-schemas [config]
   [:kafkus/list-schemas (avros/list-schemas)])
 
+(defn get-defaults []
+  [:kafkus/defaults
+   {:bootstrap.servers kafka/default-bootstrap-server
+    :rate kafka/default-rate
+    :mode "raw"
+    :limit 100
+    :auto.offset.reset "latest"}])
+
 (defn start-kafkus-server []
   (a/go-loop []
     (let [{:keys [ch-chsk chsk-send!]} sente
@@ -60,6 +68,7 @@
         :kafkus/stop (stop-kafkus-consumer uid)
         :kafkus/list-topics (chsk-send! uid (list-kafkus-topics msg))
         :kafkus/list-schemas (chsk-send! uid (list-kafkus-schemas msg))
+        :kafkus/get-defaults (chsk-send! uid (get-defaults))
         :chsk/uidport-close (stop-kafkus-consumer uid)
         (log/debug "unknown message with id " msg-id))
       (recur))))
