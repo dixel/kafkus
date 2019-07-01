@@ -179,13 +179,6 @@
                       (assoc-in [:bootstrap :servers]
                                 (get defaults :bootstrap.servers))))))
 
-(comment
-  (set-defaults {:bootstrap.servers "123123"
-                 :rate 1
-                 :mode "raw"
-                 :limit 100
-                 :auto.offset.reset "latest"}))
-
 (defn start-server []
   (a/go-loop []
     (let [{:keys [event]} (a/<! (:receive @state))

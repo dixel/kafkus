@@ -30,9 +30,7 @@
     [:get "/"] (some-> (resource-response "index.html" {:root "public"})
                        (content-type "text/html; charset=utf-8"))
     [:get "/ping"] (handlers/pong request)
-    [:get "/chsk"] (let [response ((get sente :ring-ajax-get-or-ws-handshake) request)]
-                     (log/debugf "response: %s" response)
-                     response)
+    [:get "/chsk"] ((get sente :ring-ajax-get-or-ws-handshake) request)
     [:post "/chsk"] ((get sente :ring-ajax-post) request)
     {:status 400 :body (str "bad request: " (:uri request))}))
 
@@ -42,7 +40,10 @@
            (http/start-server (-> app
                                   wrap-params
                                   wrap-keyword-params
-                                  (wrap-defaults site-defaults)
+                                  (wrap-defaults
+                                   (assoc-in
+                                    site-defaults
+                                    [:security :anti-forgery] false))
                                   wrap-json-body
                                   wrap-json-response)
                               {:port http-port
