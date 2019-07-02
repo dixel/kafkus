@@ -27,6 +27,22 @@
   {:spec int?
    :default 1})
 
+(conf/def default-limit "default number of messages displayed"
+  {:spec int?
+   :default 1000})
+
+(conf/def default-schema-registry-url "default URL for confluent schema registry"
+  {:spec string?
+   :default "http://localhost:8081"})
+
+(conf/def default-mode "default ser/de mode (avro-raw/raw/avro-schema-registry"
+  {:spec string?
+   :default "avro-schema-registry"})
+
+(conf/def default-auto-offset-reset "default auto.offset.reset consumer option"
+  {:spec string?
+   :default "latest"})
+
 (defn get-this-schema-deserializer [schema]
   (fn [ba _]
     (if (nil? ba)

@@ -92,13 +92,21 @@ services:
       KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
 
   kafkus:
-    build: .
+    image: dixel/kafkus:latest
     hostname: kafkus
     depends_on:
       - broker
       - schema-registry
     ports:
       - "4040:4040"
+    volumes:
+      - ./test/resources/:/tmp
     environment:
       LOG_LEVEL: debug
       AVRO_SCHEMAS_PATH: /tmp
+      LOAD_DEFAULT_CONFIG: "true"
+      DEFAULT_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      DEFAULT_BOOTSTRAP_SERVER: broker:9092
+      DEFAULT_MODE: avro-schema-registry
+      DEFAULT_RATE: 1
+      DEFAULT_LIMIT: 1000

@@ -16,7 +16,7 @@
   (let [{:keys [chsk ch-recv send-fn state]}
         (sente/make-channel-socket! "/chsk"
                                     nil
-                                    {:type :auto})]
+                                    {:type :ajax})]
     (atom {:receive ch-recv
            :play? false
            :send! send-fn
@@ -89,17 +89,21 @@
       [:i {:class "fas fa-stop"
            :style {"fontSize" "35px"}}]]]))
 
-(defn dyn-selector [field items & {:keys [hidden-fn disabled-fn]}]
+(defn dyn-selector [field items & {:keys [hidden-fn disabled-fn on-click-fn]}]
   [:select
    {:style {:color (if (nil? (get @state field))
                      "grey"
                      "black")}
+    :id field
     :on-change (fn [e]
                  (swap! state #(assoc % field
                                       (-> e .-target .-value))))
     :hidden (not (if hidden-fn
                    (hidden-fn)
                    true))
+    :on-click (fn [e]
+                (when on-click-fn
+                  (on-click-fn)))
     :disabled (if disabled-fn
                 (disabled-fn)
                 @play?)}
@@ -123,7 +127,9 @@
       state]
      (dyn-selector :mode ["raw" "avro-raw" "avro-schema-registry"])
      (dyn-selector :auto.offset.reset ["earliest" "latest"])
-     (dyn-selector :topic @topics)
+     (dyn-selector :topic @topics :on-click-fn
+                   #((:send! @state)
+                     [:kafkus/list-topics (get-config)]))
      [bind-fields
       (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
       state]
@@ -158,6 +164,25 @@
         [:pre item]
         [:hr]])]]])
 
+(defn set-defaults [defaults]
+  (let [{:keys [mode rate limit]} defaults]
+    (swap! state #(-> %
+                      (assoc :rate rate
+                             :auto.offset.reset (get defaults :auto.offset.reset)
+                             :schema-registry-url (get defaults :schema-registry-url)
+                             :limit limit
+                             :mode mode)
+                      (assoc-in [:bootstrap :servers]
+                                (get defaults :bootstrap.servers))))
+    (set! (.-value (.getElementById js/document "mode"))
+          mode)
+    (set! (.-value (.getElementById js/document "rate"))
+          rate)
+    (set! (.-value (.getElementById js/document "limit"))
+          limit)
+    (set! (.-value (.getElementById js/document "auto.offset.reset"))
+          (get defaults :auto.offset.reset))))
+
 (defn start-server []
   (a/go-loop []
     (let [{:keys [event]} (a/<! (:receive @state))
@@ -166,11 +191,13 @@
       (log/debug "[cljs] got message: " [msg-tag msg])
       (when (and (= msg-type :chsk/state)
                  (:first-open? msg))
-        ((:send! @state) [:kafkus/list-schemas (get-config)]))
+        ((:send! @state) [:kafkus/list-schemas (get-config)])
+        ((:send! @state) [:kafkus/get-defaults {}]))
       (case [msg-type msg-tag]
         [:chsk/recv :kafkus/list-topics] (reset! topics (sort msg))
-        [:chsk/recv :kafkus/list-schemas] (reset! schemas (sort msg))
+        [:chsk/recv :kafkus/list-schemas] (reset! schemas msg)
         [:chsk/recv :kafkus/error] (reset! middle [msg])
+        [:chsk/recv :kafkus/defaults] (set-defaults msg)
         [:chsk/recv :kafkus/message] (swap!
                                       middle
                                       (fn [m]
