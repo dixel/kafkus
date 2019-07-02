@@ -1,0 +1,23 @@
+{
+    "name": "hisRecord",
+    "type": "record",
+    "fields": [
+        {"name":"name_tag", "type":"string","default": null},
+        {
+            "name": "known_nested_structure",
+            "type": {
+                "name": "known_nested_structure",
+                "type": "record",
+                "fields": [
+                    {"name":"fieldA", "type":{"type":"array","items":"string"},"default":null},
+                    {"name":"fieldB", "type":{"type":"array","items":"string"},"default":null},
+                    {"name":"fieldC", "type":{"type":"array","items":"string"},"default":null},
+                    {"name":"fieldD", "type":{"type":"array","items":"string"},"default":null}
+                ],
+                "default":null
+
+            }
+        },
+        {"name": "another_field","type": "string","default": null}
+    ]
+}

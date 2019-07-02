@@ -22,7 +22,7 @@
                             (catch Exception e
                               (log/errorf "failed to parse schema %s: %s" % (.getMessage e))
                               "failed-to-parse-this-schema")) %]))
-         (into {}))))
+         (into (sorted-map)))))
 
 (defn type-parser [parse-fields-fun f]
   (let [field-type (:type f)

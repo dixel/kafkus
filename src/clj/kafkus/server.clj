@@ -8,6 +8,11 @@
             [clojure.core.async :as a]
             [kafkus.avro :as avros]))
 
+(conf/def load-default-config
+  "Enable/disable loading of the default config"
+  {:spec boolean?
+   :default false})
+
 (def connections (atom {}))
 
 (defn get-new-group-id []
@@ -50,12 +55,15 @@
   [:kafkus/list-schemas (avros/list-schemas)])
 
 (defn get-defaults []
-  [:kafkus/defaults
-   {:bootstrap.servers kafka/default-bootstrap-server
-    :rate kafka/default-rate
-    :mode "raw"
-    :limit 100
-    :auto.offset.reset "latest"}])
+  (if load-default-config
+    [:kafkus/defaults
+     {:bootstrap.servers kafka/default-bootstrap-server
+      :schema-registry-url kafka/default-schema-registry-url
+      :rate kafka/default-rate
+      :mode kafka/default-mode
+      :limit kafka/default-limit
+      :auto.offset.reset kafka/default-auto-offset-reset}]
+    [:kafkus/no-defaults nil]))
 
 (defn start-kafkus-server []
   (a/go-loop []
