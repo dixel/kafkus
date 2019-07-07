@@ -129,7 +129,7 @@
      [bind-fields
       (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
       state]
-     (dyn-selector :schema (keys @schemas) :hidden-fn #(= (:mode @state) "avro-raw"))
+     (dyn-selector :schema (sort (keys @schemas)) :hidden-fn #(= (:mode @state) "avro-raw"))
      [:div {:align "center"} playback]
      [:div {:style {:padding "10px"}}]
      [:div {:align "center"}
