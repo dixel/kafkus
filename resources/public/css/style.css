@@ -8,20 +8,54 @@ select {
   -moz-border-radius: 3px;
   border-radius: 3px;
   padding: 2px;
-  width: 82%;
+  width: 98%;
   border: none;
   margin: 2px;
   font-size: 15px;
   font-family: monospace;
 }
 
+.clear {
+  position: absolute;
+  top:0;
+  right:0;
+  background-color: Transparent;
+  outline:none;
+  color: darkgrey;
+  margin: 0;
+  padding: 10px 15px;
+}
+
+.limit-range {
+  padding: 10px 15px;
+}
+
+.to-range {
+  padding: 0;
+  margin: 0;
+}
+
+.total {
+    position: absolute;
+    bottom: 0;
+}
+
+.size-output {
+    width: 150px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 10px 15px;
+}
+
 input {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
-  padding: 2px;
+  padding: 3px;
+  padding-left: 6px;
   background-color: lightgrey;
-  width: 80%;
+  width: 93%;
   border: none;
   margin: 2px;
   font-size: 15px;
@@ -33,7 +67,8 @@ label {
     font-size: 15px;
     display: inline-block;
     width: 80%;
-    text-align: right;
+    text-align: center;
+    padding: 8px;
     margin: 2px;
 }
 
@@ -44,7 +79,7 @@ button {
   background-color: lightgrey;
   border: none;
   margin: 2px;
-  padding: 4px;
+  padding: 8px;
 }
 
 #wrap {
@@ -58,6 +93,7 @@ button {
   padding: 5px;
   background-color: grey;
   float: left;
+  position: relative;
 }
 
 #logo {
@@ -82,4 +118,5 @@ button {
   background-color: black;
   color: white;
   float: left;
+  position: relative;
 }

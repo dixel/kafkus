@@ -23,6 +23,7 @@
            :left-panel nil
            :topics []
            :schemas []
+           :message-count 0
            :middle nil})))
 
 (defn count-rate [rate]
@@ -70,24 +71,19 @@
        (fn []
          (reset! play? true)
          (swap! state #(assoc % :middle '()))
+         (swap! state #(assoc % :message-count 0))
          (send! [:kafkus/stop :stop])
          (send! [:kafkus/start (get-config)]))}
       [:i {:class "fas fa-play"
-           :style {"fontSize" "35px"}}]]
-     [:button
-      {:on-click (fn []
-                   (send! [:kafkus/stop :stop]))}
-      [:i {:class "fas fa-pause"
-           :style {"fontSize" "35px"}}]]
+           :style {"fontSize" "25px"}}]]
      [:button
       {:on-click (fn []
                    (reset! play? false)
                    (send! [:kafkus/stop :stop])
                    (a/go
-                     (a/<! (a/timeout 500))
-                     (swap! state #(assoc % :middle '()))))}
+                     (a/<! (a/timeout 500))))}
       [:i {:class "fas fa-stop"
-           :style {"fontSize" "35px"}}]]]))
+           :style {"fontSize" "25px"}}]]]))
 
 (defn dyn-selector [field items & {:keys [hidden-fn disabled-fn on-click-fn]}]
   [:select
@@ -134,6 +130,11 @@
       (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
       state]
      (dyn-selector :schema (keys @schemas) :hidden-fn #(= (:mode @state) "avro-raw"))
+     [:div {:align "center"} playback]
+     [:div {:style {:padding "10px"}}]
+     [:div {:align "center"}
+      [:label.to-range (str "rate: " (count-rate
+                                      (or (:rate @state) default-rate)) " msg/s")]]
      [bind-fields
       [:input#range
        {:field :range
@@ -143,8 +144,8 @@
         :max 1000
         :id :rate}]
       state]
-     [:label (str "rate: " (count-rate
-                            (or (:rate @state) default-rate)) " msg/s")]
+     [:div {:align "center"}
+      [:label.to-range (str "output: " (:limit @state default-limit) " msg")]]
      [bind-fields
       [:input
        {:field :range
@@ -154,10 +155,13 @@
         :max 10000
         :id :limit}]
       state]
-     [:label (str "limit: " (:limit @state default-limit))]
-     playback
-     [:pre "received total:" (count (:middle @state))]]
+     [:div {:style {:padding "10px"}}]
+     [:label.total "received total:" (:message-count @state)]]
     [:div {:id "middle-panel"}
+     [:button.clear
+      {:on-click (fn [_]
+                   (swap! state #(assoc % :middle '())))}
+      "clear"]
      (for [item (:middle @state)]
        ^{:key (.random js/Math)}
        [:div
@@ -201,6 +205,7 @@
         [:chsk/recv :kafkus/message] (swap!
                                       middle
                                       (fn [m]
+                                        (swap! state #(update % :message-count inc))
                                         (take
                                          (get @state :limit default-limit)
                                          (conj m
