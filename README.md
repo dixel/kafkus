@@ -9,22 +9,22 @@
 ![](./pic/screenshot.jpg)
 
 ## Goal
-Provide a minimalistic way ot inspect, what kind of data is available in a certain Kafka topic.
+Provide a minimalistic way to inspect, what kind of data is available in a certain Kafka topic.
 
 ## Features
-- Check contents of a Kafka topic with a functionality similar to `kafka-avro-console-consumer` and `kafka-console-consumer`
+- Check contents of a Kafka topic with a functionality similar to `kafkacat`, `kafka-avro-console-consumer` and `kafka-console-consumer`
 - 3 modes:
     - confluent schema registry (needs valid schema-registry-url) - handles the schema change on the flight
     - raw text format
     - raw avro schemas uploaded to the server folder (configured with `AVRO_SCHEMAS_PATH` env variable).
 - Rate limiting (server-side, so that the load on Kafka is also limited).
 
-## Running kafkus
+## Running Kafkus
 
-If you already have a kafka setup with some data in the topics, you can configure Kafkus with some defaults and run it:
+You can configure Kafkus with some defaults and run it using docker, or provide the configuration at runtime in the UI.
 
 ```bash
-docker run -p 4040:4040 -v $PWD:/tmp \
+docker run -p 4040:4040 -v $PWD/schemas-repository:/tmp \
     -e LOG_LEVEL=debug \
     -e AVRO_SCHEMAS_PATH=/tmp \
     -e LOAD_DEFAULT_CONFIG: "true" \
@@ -37,18 +37,18 @@ docker run -p 4040:4040 -v $PWD:/tmp \
     -ti dixel/kafkus
 ```
 
-In the browser, go to http://localhost:4040/, pick the topic, adjust the configuration and press "Play" to start consuming the data.
-Kafkus tries to load the topics from server once the `boostrap.servers` gets unfocused or the `topic` dropdown menu gets opened.
+Kafkus tries to load the topics from server once the `boostrap.servers` field gets unfocused or the `topic` dropdown menu gets opened.
+In the browser go to http://localhost:4040/, select the topic, adjust the configuration and press "Play" to start consuming the data.
 
 ## Configuration
-Numerous configuration options are available, you can inspect them in the logs of kafkus during the startup.
+Numerous configuration options are available, you can inspect them in the logs of Kafkus during the startup.
 
 ## Implementation
 The design goal was to make the application as composable as possible.
-Clojure/clojurescript is used as the main language to allow more dynamism (which is useful, when you don't really know what kind of schemas are going to be used).
-For client <-> server communication, amazing [sente](https://github.com/ptaoussanis/sente) library is used in a pure `ajax` mode (places where I use kafkus
+Clojure/Clojurescript is used as the main language to simplify the process of working with custom schemas.
+For client <-> server communication, amazing [sente](https://github.com/ptaoussanis/sente) is used in `ajax` mode (places where I use Kafkus
 have bad-behaving proxies).
-[mount](https://github.com/tolitius/mount) is used for components management.
+For stateful components management, [mount](https://github.com/tolitius/mount) is used.
 
 ## Roadmap
 - Better process/error communication (connected/failed to connect, etc...)
