@@ -63,11 +63,12 @@
     :disabled @play?
     :field :text}])
 
-(def playback
+(defn playback [hidden-fn]
   (let [{:keys [send! receive]} @state]
     [:div
-     [:button
-      {:on-click
+     [:button.playback
+      {:hidden (hidden-fn)
+       :on-click
        (fn []
          (reset! play? true)
          (swap! state #(assoc % :middle '()))
@@ -76,8 +77,9 @@
          (send! [:kafkus/start (get-config)]))}
       [:i {:class "fas fa-play"
            :style {"fontSize" "25px"}}]]
-     [:button
-      {:on-click (fn []
+     [:button.playback
+      {:hidden (not (hidden-fn))
+       :on-click (fn []
                    (reset! play? false)
                    (send! [:kafkus/stop :stop])
                    (a/go
@@ -130,7 +132,8 @@
       (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
       state]
      (dyn-selector :schema (sort (keys @schemas)) :hidden-fn #(= (:mode @state) "avro-raw"))
-     [:div {:align "center"} playback]
+     [:div {:style {:padding "10px"}}]
+     [:div {:align "left"} (playback #(identity @play?))]
      [:div {:style {:padding "10px"}}]
      [:div {:align "center"}
       [:label.to-range (str "rate: " (count-rate
@@ -158,6 +161,7 @@
      [:div {:style {:padding "10px"}}]
      [:label.total "received total:" (:message-count @state)]]
     [:div {:id "middle-panel"}
+     
      [:button.clear
       {:on-click (fn [_]
                    (swap! state #(assoc % :middle '())))}
