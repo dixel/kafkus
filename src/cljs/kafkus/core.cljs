@@ -16,7 +16,7 @@
   (let [{:keys [chsk ch-recv send-fn state]}
         (sente/make-channel-socket! "/chsk"
                                     nil
-                                    {:type :ajax})]
+                                    {:type :auto})]
     (atom {:receive ch-recv
            :play? false
            :send! send-fn
