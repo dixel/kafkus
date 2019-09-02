@@ -5,7 +5,8 @@
             [dvlopt.kafka.in :as K.in]
             [dvlopt.kafka.out :as K.out]
             [deercreeklabs.lancaster :as avro]
-            [kafka-avro-confluent.v2.deserializer :as des]
+            [kafka-avro-confluent.deserializers :as des]
+            [kafka-avro-confluent.schema-registry-client :as schema-registry-client]
             [kafka-avro-confluent.v2.serializer :as ser]
             [kafkus.avro :as kavro]
             [abracad.avro :as abracad-avro]
@@ -67,10 +68,12 @@
 
 (defn get-schema-registry-deserializer [config]
   (let [deser (des/->avro-deserializer
-               {:schema-registry/base-url
-                (or
-                 (get config :schema-registry-url)
-                 default-schema-registry-url)})]
+               (schema-registry-client/->schema-registry-client
+                {:base-url
+                 (or
+                  (get config :schema-registry-url)
+                  default-schema-registry-url)})
+               :convert-logical-types? false)]
     (fn [data _]
       (if (nil? data)
         nil
