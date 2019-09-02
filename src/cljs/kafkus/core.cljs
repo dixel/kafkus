@@ -55,18 +55,32 @@
 (defn config-input
   "configuration text input"
   [field & {:keys [on-blur-fn hidden-fn]}]
-  [:input.form-control
-   {:id field
-    :on-blur on-blur-fn
-    :visible? (or hidden-fn (constantly true))
-    :placeholder field
-    :disabled @play?
-    :field :text}])
+  [:div.row
+   [:input.form-control
+    {:id field
+     :on-blur on-blur-fn
+     :visible? (or hidden-fn (constantly true))
+     :placeholder field
+     :disabled @play?
+     :field :text}]])
+
+(defn config-checkbox
+  "configuration checkbox"
+  [field & {:keys [on-blur-fn hidden-fn]}]
+  [:div.row [:label.column "SASL/SSL"]
+   [:input.column
+    {:id field
+     :name field
+     :on-blur on-blur-fn
+     :visible? (or hidden-fn (constantly true))
+     :placeholder field
+     :disabled @play?
+     :type :checkbox}]])
 
 (defn playback [hidden-fn]
   (let [{:keys [send! receive]} @state]
     [:div
-     [:button.playback
+     [:button.btn.btn-block
       {:hidden (hidden-fn)
        :on-click
        (fn []
@@ -77,7 +91,7 @@
          (send! [:kafkus/start (get-config)]))}
       [:i {:class "fas fa-play"
            :style {"fontSize" "25px"}}]]
-     [:button.playback
+     [:button.btn.btn-block
       {:hidden (not (hidden-fn))
        :on-click (fn []
                    (reset! play? false)
@@ -88,53 +102,54 @@
            :style {"fontSize" "25px"}}]]]))
 
 (defn dyn-selector [field items & {:keys [hidden-fn disabled-fn on-click-fn]}]
-  [:select
-   {:style {:color (if (nil? (get @state field))
-                     "grey"
-                     "black")}
-    :id field
-    :on-change (fn [e]
-                 (swap! state #(assoc % field
-                                      (-> e .-target .-value))))
-    :hidden (not (if hidden-fn
-                   (hidden-fn)
-                   true))
-    :on-click (fn [e]
-                (when on-click-fn
-                  (on-click-fn)))
-    :disabled (if disabled-fn
-                (disabled-fn)
-                @play?)}
-   [:option.defaultOption {:selected "true"
-                           :hidden "true"
-                           :disabled "disabled"} field]
-   (for [i items]
-     ^{:key i}
-     [:option i])])
+  [:div.tab-pane
+   [:select
+    {:style {:color (if (nil? (get @state field))
+                      "grey"
+                      "black")}
+     :id field
+     :on-change (fn [e]
+                  (swap! state #(assoc % field
+                                       (-> e .-target .-value))))
+     :hidden (not (if hidden-fn
+                    (hidden-fn)
+                    true))
+     :on-click (fn [e]
+                 (when on-click-fn
+                   (on-click-fn)))
+     :disabled (if disabled-fn
+                 (disabled-fn)
+                 @play?)}
+    [:option.defaultOption {:selected "true"
+                            :hidden "true"
+                            :disabled "disabled"} field]
+    (for [i items]
+      ^{:key i}
+      [:option i])]])
 
 (defn app []
-  [:div
-   [:div {:id "wrap"}
-    [:div {:id "left-panel"}
+  [:div.container
+   [:div.row {:id "wrap"}
+    [:div.col-3 {:id "left-panel"}
      [:p {:id "logo"} [:b {:id "logo1"} "O_"] "kafkus"]
-     [bind-fields
-      [:div
-       (config-input :bootstrap.servers
-                     :on-blur-fn #((:send! @state)
-                                   [:kafkus/list-topics (get-config)]))]
-      state]
-     (dyn-selector :mode ["raw" "avro-raw" "avro-schema-registry"])
-     (dyn-selector :auto.offset.reset ["earliest" "latest"])
-     (dyn-selector :topic @topics :on-click-fn
-                   #((:send! @state)
-                     [:kafkus/list-topics (get-config)]))
-     [bind-fields
-      (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
-      state]
+     [:div.tab-content
+      [bind-fields
+       [:div.tab-pane
+        (config-input :bootstrap.servers
+                      :on-blur-fn #((:send! @state)
+                                    [:kafkus/list-topics (get-config)]))]
+       state]
+      (dyn-selector :mode ["raw" "avro-raw" "avro-schema-registry"])
+      (dyn-selector :auto.offset.reset ["earliest" "latest"])
+      (dyn-selector :topic @topics :on-click-fn
+                    #((:send! @state)
+                      [:kafkus/list-topics (get-config)]))
+      [bind-fields
+       (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
+       state]]
      (dyn-selector :schema (sort (keys @schemas)) :hidden-fn #(= (:mode @state) "avro-raw"))
-     [:div {:style {:padding "10px"}}]
+     (config-checkbox "SSL/SASL")
      [:div {:align "left"} (playback #(identity @play?))]
-     [:div {:style {:padding "10px"}}]
      [:div {:align "center"}
       [:label.to-range (str "rate: " (count-rate
                                       (or (:rate @state) default-rate)) " msg/s")]]
@@ -158,11 +173,9 @@
         :max 10000
         :id :limit}]
       state]
-     [:div {:style {:padding "10px"}}]
-     [:label.total "received total:" (:message-count @state)]]
-    [:div {:id "middle-panel"}
-     
-     [:button.clear
+     [:label "received total:" (:message-count @state)]]
+    [:div.col-9 {:id "middle-panel"}
+     [:button.btn.justify-content-end
       {:on-click (fn [_]
                    (swap! state #(assoc % :middle '())))}
       "clear"]
