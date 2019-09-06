@@ -5,8 +5,8 @@ services:
     image: confluentinc/cp-zookeeper:5.2.1
     hostname: zookeeper
     container_name: zookeeper
-    ports:
-      - "2181:2181"
+    network_mode:
+        host
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -23,15 +23,14 @@ services:
     container_name: broker
     depends_on:
       - zookeeper
-    ports:
-      - "19093:19093"
-      - "29092:29092"
+    network_mode:
+        host
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      #      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_LISTENERS: PLAINTEXT://broker:29092,SASL_PLAINTEXT://localhost:19093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,,SASL_PLAINTEXT://localhost:19093
+      KAFKA_ZOOKEEPER_CONNECT: 'localhost:2181'
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://localhost:29092,SASL_PLAINTEXT://localhost:19093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092,,SASL_PLAINTEXT://localhost:19093
       KAFKA_ZOOKEEPER_SET_ACL: "true"
       KAFKA_SUPER_USER: "User:broker"
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
@@ -40,8 +39,8 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: localhost:29092
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: localhost:2181
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
@@ -50,13 +49,16 @@ services:
 
   schema-registry:
     image: confluentinc/cp-schema-registry:5.2.1
-    hostname: schema-registry
+    hostname: localhost
     container_name: schema-registry
     depends_on:
       - zookeeper
       - broker
-    ports:
-      - "8081:8081"
+    network_mode:
+        host
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'localhost:2181'
+      KAFKA_OPTS: -Djava.security.auth.login.config=/etc/secrets/schema_registry_jaas.config
+    volumes:
+      - ./secrets:/etc/secrets
