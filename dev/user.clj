@@ -81,6 +81,7 @@
         ]
      }"
      :schema-registry-url "http://localhost:8081"
+     :callback (fn [payload] (clojure.pprint/pprint payload))
      :sasl.mechanism "PLAIN"
      :sasl.jaas.config "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"kafkabroker1\" password=\"kafkabroker1-secret\";"
      :security.protocol "SASL_PLAINTEXT"
@@ -92,4 +93,4 @@
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
   (def consumer
-    (kafka/consume! schema-registry-config)))
+    (kafka/consume! (get-schema-registry-config))))
