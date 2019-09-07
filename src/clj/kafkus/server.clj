@@ -27,7 +27,8 @@
 
 (defn start-kafkus-consumer [uid config]
   (stop-kafkus-consumer uid)
-  (log/info "starting consumer: " config)
+  (log/info "starting consumer: " uid)
+  (log/debug "consumer config: " config)
   (try
     (swap! connections
            (fn [conns]
@@ -77,7 +78,7 @@
       (case msg-id
         :kafkus/start (chsk-send! uid (start-kafkus-consumer uid msg))
         :kafkus/stop (stop-kafkus-consumer uid)
-        :kafkus/list-topics (chsk-send! uid (list-kafkus-topics msg))
+        :kafkus/list-topics (a/go (chsk-send! uid (list-kafkus-topics msg)))
         :kafkus/list-schemas (chsk-send! uid (list-kafkus-schemas msg))
         :kafkus/get-defaults (chsk-send! uid (get-defaults))
         :chsk/uidport-close (stop-kafkus-consumer uid)
