@@ -1,6 +1,8 @@
 (ns kafkus.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [kafkus.utils :as u]
+            [goog.string :as gstring]
+            [goog.string.format]
             [reagent-forms.core :refer [bind-fields]]
             [mount.core :as mount]
             [reagent.core :as reagent :refer [atom]]
@@ -43,6 +45,9 @@
 (def play?
   (reagent/cursor state [:play?]))
 
+(def plaintext-jaas-template
+  "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";")
+
 (defn get-config []
   {:bootstrap-servers (get-in @state [:bootstrap :servers])
    :schema-registry-url (get @state :schema-registry-url)
@@ -50,18 +55,25 @@
    :schema (get-in @state [:schemas (get @state :schema)])
    :mode (get @state :mode)
    :rate (count-rate (get @state :rate default-rate))
-   :topic (get @state :topic)})
+   :topic (get @state :topic)
+   :security.protocol (get @state :security.protocol)
+   :sasl.mechanism (get @state :sasl.mechanism)
+   :sasl.jaas.config (when-let [jaas (get @state :sasl.jaas.config
+                                          plaintext-jaas-template)]
+                       (gstring/format jaas
+                                       (get @state :username)
+                                       (get @state :password)))})
 
 (defn config-input
   "configuration text input"
-  [field & {:keys [on-blur-fn hidden-fn]}]
+  [field & {:keys [on-blur-fn hidden-fn password?]}]
   [:input.form-control
    {:id field
     :on-blur on-blur-fn
     :visible? (or hidden-fn (constantly true))
     :placeholder field
     :disabled @play?
-    :field :text}])
+    :field (if password? :password :text)}])
 
 (defn playback [hidden-fn]
   (let [{:keys [send! receive]} @state]
@@ -117,6 +129,20 @@
    [:div {:id "wrap"}
     [:div {:id "left-panel"}
      [:p {:id "logo"} [:b {:id "logo1"} "O_"] "kafkus"]
+     (dyn-selector :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL" "SSL"])
+     (dyn-selector :sasl.mechanism ["PLAIN" "SSL"]
+                   :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))
+     [bind-fields
+      [:div
+       (config-input :username
+                     :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))]
+      state]
+     [bind-fields
+      [:div
+       (config-input :password
+                     :password? true
+                     :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))]
+      state]
      [bind-fields
       [:div
        (config-input :bootstrap.servers
@@ -161,7 +187,6 @@
      [:div {:style {:padding "10px"}}]
      [:label.total "received total:" (:message-count @state)]]
     [:div {:id "middle-panel"}
-     
      [:button.clear
       {:on-click (fn [_]
                    (swap! state #(assoc % :middle '())))}
@@ -178,10 +203,17 @@
                       (assoc :rate rate
                              :auto.offset.reset (get defaults :auto.offset.reset)
                              :schema-registry-url (get defaults :schema-registry-url)
+                             :security.protocol (get defaults :security.protocol)
+                             :sasl.jaas.config (get defaults :sasl.jaas.config)
+                             :sasl.mechanism (get defaults :sasl.mechanism)
                              :limit limit
                              :mode mode)
                       (assoc-in [:bootstrap :servers]
                                 (get defaults :bootstrap.servers))))
+    (set! (.-value (.getElementById js/document "security.protocol"))
+          (get defaults :security.protocol))
+    (set! (.-value (.getElementById js/document "sasl.mechanism"))
+          (get defaults :sasl.mechanism))
     (set! (.-value (.getElementById js/document "mode"))
           mode)
     (set! (.-value (.getElementById js/document "rate"))
