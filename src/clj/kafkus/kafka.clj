@@ -139,7 +139,7 @@
         consumer
         (K.in/consumer consumer-config)
         control-channel (a/chan)]
-    (log/info "starting consumer: %s" consumer-config)
+    (log/debugf "starting consumer with config: %s" consumer-config)
     (K.in/register-for consumer [(get config :topic)])
     (a/go-loop [[record & records] (K.in/poll consumer
                                               {::K/timeout [0 :milliseconds]})]
