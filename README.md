@@ -6,7 +6,7 @@
 
 ![](./pic/badge-1.png) ![](./pic/badge-2.png)
 
-![](./pic/screenshot.jpg)
+![](./pic/screenshot.png)
 
 ## Goal
 Provide a minimalistic way to inspect, what kind of data is available in a certain Kafka topic.
