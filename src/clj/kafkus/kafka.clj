@@ -44,6 +44,18 @@
   {:spec string?
    :default "latest"})
 
+(conf/def default-sasl-mechanism "default SASL auth mechanism for kafka"
+  {:spec string?
+   :default "PLAIN"})
+
+(conf/def default-sasl-jaas-config "default kafka JAAS config format string (%s for username/password placeholder)"
+  {:spec string?
+   :default "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";"})
+
+(conf/def default-security-protocol "default kafka auth security protocol"
+  {:spec string?
+   :default "PLAINTEXT"})
+
 (defn get-this-schema-deserializer [schema]
   (fn [ba _]
     (if (nil? ba)
@@ -112,7 +124,8 @@
   (with-open [admin
               (K.admin/admin
                {::K/nodes (get-nodes-from-bootstraps (or bootstrap-servers
-                                                         default-bootstrap-server))})]
+                                                         default-bootstrap-server))
+                ::K.admin/configuration (walk/stringify-keys config)})]
     (->> (keys @(K.admin/topics admin {::K/internal? false}))
          (filter #(not (str/starts-with? % "_"))))))
 

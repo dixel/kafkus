@@ -62,6 +62,9 @@
       :rate kafka/default-rate
       :mode kafka/default-mode
       :limit kafka/default-limit
+      :sasl.jaas.config kafka/default-sasl-jaas-config
+      :sasl.mechanism kafka/default-sasl-mechanism
+      :security.protocol kafka/default-security-protocol
       :auto.offset.reset kafka/default-auto-offset-reset}]
     [:kafkus/no-defaults nil]))
 
