@@ -210,6 +210,10 @@
                              :mode mode)
                       (assoc-in [:bootstrap :servers]
                                 (get defaults :bootstrap.servers))))
+    (set! (.-value (.getElementById js/document "security.protocol"))
+          (get defaults :security.protocol))
+    (set! (.-value (.getElementById js/document "sasl.mechanism"))
+          (get defaults :sasl.mechanism))
     (set! (.-value (.getElementById js/document "mode"))
           mode)
     (set! (.-value (.getElementById js/document "rate"))
