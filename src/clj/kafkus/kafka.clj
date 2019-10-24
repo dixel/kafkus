@@ -5,7 +5,8 @@
             [dvlopt.kafka.in :as K.in]
             [dvlopt.kafka.out :as K.out]
             [deercreeklabs.lancaster :as avro]
-            [kafka-avro-confluent.v2.deserializer :as des]
+            [kafka-avro-confluent.deserializers :as des]
+            [kafka-avro-confluent.schema-registry-client :as schema-registry-client]
             [kafka-avro-confluent.v2.serializer :as ser]
             [kafkus.avro :as kavro]
             [abracad.avro :as abracad-avro]
@@ -43,6 +44,18 @@
   {:spec string?
    :default "latest"})
 
+(conf/def default-sasl-mechanism "default SASL auth mechanism for kafka"
+  {:spec string?
+   :default "PLAIN"})
+
+(conf/def default-sasl-jaas-config "default kafka JAAS config format string (%s for username/password placeholder)"
+  {:spec string?
+   :default "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";"})
+
+(conf/def default-security-protocol "default kafka auth security protocol"
+  {:spec string?
+   :default "PLAINTEXT"})
+
 (defn get-this-schema-deserializer [schema]
   (fn [ba _]
     (if (nil? ba)
@@ -67,10 +80,12 @@
 
 (defn get-schema-registry-deserializer [config]
   (let [deser (des/->avro-deserializer
-               {:schema-registry/base-url
-                (or
-                 (get config :schema-registry-url)
-                 default-schema-registry-url)})]
+               (schema-registry-client/->schema-registry-client
+                {:base-url
+                 (or
+                  (get config :schema-registry-url)
+                  default-schema-registry-url)})
+               :convert-logical-types? false)]
     (fn [data _]
       (if (nil? data)
         nil
@@ -109,7 +124,8 @@
   (with-open [admin
               (K.admin/admin
                {::K/nodes (get-nodes-from-bootstraps (or bootstrap-servers
-                                                         default-bootstrap-server))})]
+                                                         default-bootstrap-server))
+                ::K.admin/configuration (walk/stringify-keys config)})]
     (->> (keys @(K.admin/topics admin {::K/internal? false}))
          (filter #(not (str/starts-with? % "_"))))))
 
@@ -123,7 +139,7 @@
         consumer
         (K.in/consumer consumer-config)
         control-channel (a/chan)]
-    (log/info "starting consumer: %s" consumer-config)
+    (log/debugf "starting consumer with config: %s" consumer-config)
     (K.in/register-for consumer [(get config :topic)])
     (a/go-loop [[record & records] (K.in/poll consumer
                                               {::K/timeout [0 :milliseconds]})]

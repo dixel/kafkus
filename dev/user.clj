@@ -52,10 +52,10 @@
      :channel input
      :auto.offset.reset "earliest"
      :enable.auto.commit false
-     :topic "kafkus-sample-schema-registry-new"
+     :topic "-kafkus-schema-registry"
      :schema "{
         \"type\": \"record\",
-        \"name\": \"value_schem\",
+        \"name\": \"sampleSchema\",
         \"fields\": [
         {
           \"name\": \"id\",
@@ -66,28 +66,31 @@
           \"type\": \"string\"
         },
         {
-          \"name\": \"additionalField\",
+          \"name\": \"stringField\",
           \"type\": \"string\",
           \"default\": \"\"
         },
         {
-          \"name\": \"additionalExtraField\",
-          \"type\": \"string\",
-          \"default\": \"\"
-        },
-        {
-          \"name\": \"newAdditionalField\",
-          \"type\": \"string\",
-          \"default\": \"\"
+          \"name\": \"dateField\",
+          \"type\": [\"null\", {
+                     \"type\": \"long\",
+                     \"logical-type\": \"timestamp-millis\"
+          }],
+          \"default\": \"null\"
         }
         ]
      }"
      :schema-registry-url "http://localhost:8081"
+     :callback (fn [payload] (clojure.pprint/pprint payload))
+     :sasl.mechanism "PLAIN"
+     :sasl.jaas.config "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"kafkabroker1\" password=\"kafkabroker1-secret\";"
+     :security.protocol "PLAINTEXT"
      :rate 1
-     :payload {:id (swap! incer inc) :name "Amazing User" :additionalField "testcompat"
-               :newAdditionalField "something-new"
-               :additionalExtraField "newString"}
+     :payload {:id (swap! incer inc)
+               :name "Amazing User"
+               :stringField "produced some test data"
+               :dateField 0}
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
   (def consumer
-    (kafka/consume! schema-registry-config)))
+    (kafka/consume! (get-schema-registry-config))))
