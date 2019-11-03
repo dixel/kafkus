@@ -49,7 +49,7 @@ services:
   
 
   kafkus:
-    image: dixel/kafkus:0.1.2.23
+    image: dixel/kafkus:0.1.2.25
     hostname: kafkus
     depends_on:
       - schema-registry
