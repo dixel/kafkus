@@ -27,13 +27,13 @@ You can configure Kafkus with some defaults and run it using docker, or provide 
 docker run -p 4040:4040 -v $PWD/schemas-repository:/tmp \
     -e LOG_LEVEL=debug \
     -e AVRO_SCHEMAS_PATH=/tmp \
-    -e LOAD_DEFAULT_CONFIG: "true" \
-    -e DEFAULT_BOOTSTRAP_SERVER: localhost:9092 \
-    -e DEFAULT_SCHEMA_REGISTRY_URL: "http://localhost:8081" \
-    -e DEFAULT_MODE: avro-schema-registry \
-    -e DEFAULT_AUTO_OFFSET_RESET: earliest \
-    -e DEFAULT_RATE: 1 \
-    -e DEFAULT_LIMIT: 1000 \
+    -e LOAD_DEFAULT_CONFIG="true" \
+    -e DEFAULT_BOOTSTRAP_SERVER=localhost:9092 \
+    -e DEFAULT_SCHEMA_REGISTRY_URL="http://localhost:8081" \
+    -e DEFAULT_MODE=avro-schema-registry \
+    -e DEFAULT_AUTO_OFFSET_RESET=earliest \
+    -e DEFAULT_RATE=1 \
+    -e DEFAULT_LIMIT=1000 \
     -ti dixel/kafkus
 ```
 
