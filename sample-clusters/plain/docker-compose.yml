@@ -46,3 +46,22 @@ services:
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
+  
+
+  kafkus:
+    image: dixel/kafkus:0.1.2.23
+    hostname: kafkus
+    depends_on:
+      - schema-registry
+    ports:
+      - "4040:4040"
+    environment:
+      LOG_LEVEL: debug 
+      AVRO_SCHEMAS_PATH: /tmp 
+      LOAD_DEFAULT_CONFIG: "true" 
+      DEFAULT_BOOTSTRAP_SERVER: broker:29092 
+      DEFAULT_SCHEMA_REGISTRY_URL: "http://schema-registry:8081" 
+      DEFAULT_MODE: avro-schema-registry 
+      DEFAULT_AUTO_OFFSET_RESET: earliest 
+      DEFAULT_RATE: 15
+      DEFAULT_LIMIT: 1000 

@@ -34,6 +34,11 @@
     (<= rate 550) (max 1 (quot rate 10))
     :else (- rate 500)))
 
+(defn reverse-count-rate [rate]
+  (cond
+    (<= rate 550) (max 1 (* rate 10))
+    :else (+ rate 500)))
+
 (def topics
   (reagent/cursor state [:topics]))
 
@@ -123,6 +128,7 @@
      [:button.btn.dropdown-toggle
       {:type "button"
        :id field
+       :on-click on-click-fn
        :data-toggle "dropdown"
        :aria-haspopup "true"
        :aria-expanded "false"}
@@ -220,9 +226,10 @@
         [:hr]])]]])
 
 (defn set-defaults [defaults]
+  (log/info "defaults: " defaults)
   (let [{:keys [mode rate limit]} defaults]
     (swap! state #(-> %
-                      (assoc :rate rate
+                      (assoc :rate (reverse-count-rate rate)
                              :auto.offset.reset (get defaults :auto.offset.reset)
                              :schema-registry-url (get defaults :schema-registry-url)
                              :security.protocol (get defaults :security.protocol)
@@ -239,7 +246,7 @@
     (set! (.-value (.getElementById js/document "mode"))
           mode)
     (set! (.-value (.getElementById js/document "rate"))
-          rate)
+          (reverse-count-rate rate))
     (set! (.-value (.getElementById js/document "limit"))
           limit)
     (set! (.-value (.getElementById js/document "auto.offset.reset"))
