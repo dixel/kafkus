@@ -1,4 +1,4 @@
-(defproject kafkus "0.1.1"
+(defproject kafkus "0.1.2"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/clojurescript "1.10.339"]
                  [org.clojure/core.async "0.4.490"]

@@ -95,7 +95,7 @@
 (defn playback [hidden-fn]
   (let [{:keys [send! receive]} @state]
     [:div
-     [:button.btn.btn-secondary.container-fluid
+     [:button.btn.btn-dark.container-fluid
       {:hidden (hidden-fn)
        :on-click
        (fn []
@@ -140,23 +140,23 @@
 (defn app []
   [:div.container
    [:div.row {:id "wrap"}
-    [:div.col-3 {:id "left-panel"}
+    [:div.col-3.bg-secondary {:id "left-panel"}
      [:p {:id "logo"} [:b {:id "logo1"} "O_"] "kafkus"]
      [:nav.vertical-navbar.navbar-expand-lg
-     (dyn-selector :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL" "SSL"])
-     (dyn-selector :sasl.mechanism ["PLAIN" "SSL"]
-                   :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))
-     [bind-fields
-      [:div
-       (config-input :username
-                     :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))]
-      state]
-     [bind-fields
-      [:div
-       (config-input :password
-                     :password? true
-                     :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))]
-      state]
+      (dyn-selector :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL" "SSL"])
+      (dyn-selector :sasl.mechanism ["PLAIN" "SSL"]
+                    :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))
+      [bind-fields
+       [:div
+        (config-input :username
+                      :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))]
+       state]
+      [bind-fields
+       [:div
+        (config-input :password
+                      :password? true
+                      :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))]
+       state]
       [:div.input-group
        [bind-fields
         (config-input :bootstrap.servers
@@ -173,37 +173,42 @@
       (dyn-selector :topic @topics :on-click-fn
                     #((:send! @state)
                       [:kafkus/list-topics (get-config)]))
-     [bind-fields
-      (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
-      state]
-     (dyn-selector :schema (sort (keys @schemas)) :hidden-fn #(= (:mode @state) "avro-raw"))
-     [:div {:align "left"} (playback #(identity @play?))]
-     [:div {:align "center"}
-      [:label.to-range (str "rate: " (count-rate
-                                      (or (:rate @state) default-rate)) " msg/s")]]
-     [bind-fields
-      [:input#range
-       {:field :range
-        :defaultValue default-rate
-        :min 1
-        :step 1
-        :max 1000
-        :id :rate}]
-      state]
-     [:div {:align "center"}
-      [:label.to-range (str "output: " (:limit @state default-limit) " msg")]]
-     [bind-fields
-      [:input
-       {:field :range
-        :defaultValue default-limit
-        :min 1
-        :step 1
-        :max 10000
-        :id :limit}]
-      state]
-     [:div {:style {:padding "10px"}}]
-     [:label.total "received total:" (:message-count @state)]]]
-    [:div.col-9 {:id "middle-panel"}
+      [bind-fields
+       (config-input :schema-registry-url :hidden-fn #(= (:mode @state) "avro-schema-registry"))
+       state]
+      (dyn-selector :schema (sort (keys @schemas)) :hidden-fn #(= (:mode @state) "avro-raw"))
+      [:div {:align "left"} (playback #(identity @play?))]
+      [:br]
+      [:div
+       [:label.to-range (str "rate: " (count-rate
+                                       (or (:rate @state) default-rate)) " msg/s")]]
+      [bind-fields
+       [:input#range
+        {:field :range
+         :type :range
+         :class :form-control-range
+         :defaultValue default-rate
+         :min 1
+         :step 1
+         :max 1000
+         :id :rate}]
+       state]
+      [:div 
+       [:label.to-range (str "output: " (:limit @state default-limit) " msg")]]
+      [bind-fields
+       [:input
+        {:field :range
+         :type :range
+         :class :form-control-range
+         :defaultValue default-limit
+         :min 1
+         :step 1
+         :max 10000
+         :id :limit}]
+       state]
+      [:div {:style {:padding "10px"}}]
+      [:label.total "received total:" (:message-count @state)]]]
+    [:div.col-9.bg-light {:id "middle-panel"}
      [:button.rounded-lg.bg-transparent.border-dark.float-right
       {:on-click (fn [_]
                    (swap! state #(assoc % :middle '())))}

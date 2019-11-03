@@ -41,7 +41,7 @@
      :channel input
      :auto.offset.reset "earliest"
      :enable.auto.commit false
-     :topic "kafkus-sample-raw-avro"
+     :topic "-kafkus-sample-raw-avro"
      :rate 1
      :payload (kavro/sample-data kavro/complex-schema)
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
