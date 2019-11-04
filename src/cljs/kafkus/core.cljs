@@ -145,7 +145,8 @@
 
 (defn app []
   [:div.container
-   [:div.row {:id "wrap"}
+   [:div.row {:id "wrap"
+              :style {:height "100vh"}}
     [:div.col-3.bg-secondary {:id "left-panel"}
      [:p {:id "logo"} [:b {:id "logo1"} "O_"] "kafkus"]
      [:nav.vertical-navbar.navbar-expand-lg
@@ -214,16 +215,32 @@
        state]
       [:div {:style {:padding "10px"}}]
       [:label.total "received total:" (:message-count @state)]]]
-    [:div.col-9.bg-light {:id "middle-panel"}
-     [:button.rounded-lg.bg-transparent.border-dark.float-right
-      {:on-click (fn [_]
-                   (swap! state #(assoc % :middle '())))}
-      "clear"]
-     (for [item (:middle @state)]
-       ^{:key (.random js/Math)}
-       [:div
-        [:pre item]
-        [:hr]])]]])
+    [:div.col-9.bg-light.mh-100 {:id "middle-panel"
+                                 :style {:overflow-y "scroll"}}
+     [:div
+      [:button.rounded-lg.bg-transparent.border-dark.float-right
+       {:on-click (fn [_]
+                    (swap! state #(assoc % :middle '())))}
+       "clear"]]
+     [:br]
+     [:br]
+     (for [[i item] (map-indexed vector (:middle @state))]
+       ^{:key i}
+       [:div.card
+        [:div.card-header {:id (str "heading" i)}
+         [:h5.mb-0
+          [:button.btn.btn-link
+           {:data-toggle "collapse"
+            :data-target (str "#collapse" i)
+            :aria-expanded "true"
+            :aria-control (str "collapse" i)}
+           (apply str (conj (vec (take 100 item)) "..."))]]]
+        [:div.collapse
+         {:id (str "collapse" i)
+          :aria-labelledby (str "heading" i)
+          :data-parent "#middle-panel"}
+         [:div.card-body
+          [:pre item]]]])]]])
 
 (defn set-defaults [defaults]
   (log/info "defaults: " defaults)
