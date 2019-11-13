@@ -56,6 +56,10 @@
   {:spec string?
    :default "PLAINTEXT"})
 
+(conf/def kafka-admin-client-timeout "default timeout for kafka admin client"
+  {:spec integer?
+   :default 1000})
+
 (defn get-this-schema-deserializer [schema]
   (fn [ba _]
     (if (nil? ba)
@@ -125,7 +129,9 @@
               (K.admin/admin
                {::K/nodes (get-nodes-from-bootstraps (or bootstrap-servers
                                                          default-bootstrap-server))
-                ::K.admin/configuration (walk/stringify-keys config)})]
+                ::K.admin/configuration (assoc
+                                         (walk/stringify-keys config)
+                                         "request.timeout.ms" (java.lang.Integer. kafka-admin-client-timeout))})]
     (->> (keys @(K.admin/topics admin {::K/internal? false}))
          (filter #(not (str/starts-with? % "_"))))))
 

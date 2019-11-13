@@ -47,7 +47,7 @@
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
   (defn get-schema-registry-config []
-    {:bootstrap-servers "localhost:19093"
+    {:bootstrap-servers "localhost:9092"
      :mode "avro-schema-registry"
      :channel input
      :auto.offset.reset "earliest"
@@ -84,8 +84,8 @@
      :callback (fn [payload] (clojure.pprint/pprint payload))
      :sasl.mechanism "PLAIN"
      :sasl.jaas.config "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"kafkabroker1\" password=\"kafkabroker1-secret\";"
-     :security.protocol "SASL_PLAINTEXT"
-     :rate 1
+     :security.protocol "PLAINTEXT"
+     :rate 15
      :payload {:id (swap! incer inc)
                :name "Amazing User"
                :stringField "produced some test data"
