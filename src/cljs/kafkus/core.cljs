@@ -154,7 +154,7 @@
                      :on-blur-fn #((:send! @state)
                                    [:kafkus/list-topics (get-config)]))]
       state]
-     (dyn-selector :mode ["raw" "avro-raw" "avro-schema-registry"])
+     (dyn-selector :mode ["raw" "json" "avro-raw" "avro-schema-registry"])
      (dyn-selector :auto.offset.reset ["earliest" "latest"])
      (dyn-selector :topic @topics :on-click-fn
                    #((:send! @state)
@@ -249,10 +249,13 @@
                                         (swap! state #(update % :message-count inc))
                                         (take
                                          (get @state :limit default-limit)
-                                         (conj m
-                                               (if (= (:mode @state) "raw")
-                                                 msg
-                                                 (u/->json msg))))))
+                                         (conj
+                                          m
+                                          (case (:mode @state)
+                                            "avro-schema-registry" (u/->json msg)
+                                            "avro-raw" (u/->json msg)
+                                            "raw" msg
+                                            "json" (u/pretty-json msg))))))
         (log/debug "[cljs] unknown event: " event)))
     (recur)))
 
