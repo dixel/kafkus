@@ -33,6 +33,11 @@
     (<= rate 550) (max 1 (quot rate 10))
     :else (- rate 500)))
 
+(defn reverse-count-rate [rate]
+  (cond
+    (<= rate 550) (max 1 (* rate 10))
+    :else (+ rate 500)))
+
 (def topics
   (reagent/cursor state [:topics]))
 
@@ -200,7 +205,7 @@
 (defn set-defaults [defaults]
   (let [{:keys [mode rate limit]} defaults]
     (swap! state #(-> %
-                      (assoc :rate rate
+                      (assoc :rate (reverse-count-rate rate)
                              :auto.offset.reset (get defaults :auto.offset.reset)
                              :schema-registry-url (get defaults :schema-registry-url)
                              :security.protocol (get defaults :security.protocol)
