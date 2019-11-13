@@ -98,6 +98,7 @@
 (defn get-mode-deserializer [mode config]
   (case mode
     "raw" (get K/deserializers :string)
+    "json" (get K/deserializers :string)
     "avro-raw" (get-this-schema-deserializer (avro/json->schema (get config :schema)))
     "avro-schema-registry" (get-schema-registry-deserializer config)))
 
