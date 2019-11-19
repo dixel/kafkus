@@ -15,9 +15,11 @@
                  [ovotech/kafka-avro-confluent "2.1.0-1"]
                  [deercreeklabs/lancaster "0.6.6"]
                  [reagent-forms "0.5.43"]
+                 [reagent-utils "0.3.3"]
                  [ring "1.6.3"]
                  [ring/ring-defaults "0.3.2"]
-                 [ring/ring-json "0.4.0"]]
+                 [ring/ring-json "0.4.0"]
+                 [ring-basic-authentication "1.0.5"]]
   :main kafkus.core
   :source-paths ["src/clj", "src/cljs"]
   :uberjar-name "kafkus.jar"
