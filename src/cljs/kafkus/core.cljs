@@ -6,6 +6,7 @@
             [reagent-forms.core :refer [bind-fields]]
             [mount.core :as mount]
             [reagent.core :as reagent :refer [atom]]
+            [reagent.cookies :as cookies]
             [taoensso.sente :as sente :refer (cb-success?)]
             [cljs.core.async :as a]
             [taoensso.timbre :as log]))
@@ -212,21 +213,17 @@
                              :sasl.jaas.config (get defaults :sasl.jaas.config)
                              :sasl.mechanism (get defaults :sasl.mechanism)
                              :limit limit
-                             :mode mode)
+                             :mode mode
+                             :username (js/decodeURIComponent (cookies/get "kafkus-username"))
+                             :password (js/decodeURIComponent (cookies/get "kafkus-password")))
                       (assoc-in [:bootstrap :servers]
                                 (get defaults :bootstrap.servers))))
-    (set! (.-value (.getElementById js/document "security.protocol"))
-          (get defaults :security.protocol))
-    (set! (.-value (.getElementById js/document "sasl.mechanism"))
-          (get defaults :sasl.mechanism))
-    (set! (.-value (.getElementById js/document "mode"))
-          mode)
-    (set! (.-value (.getElementById js/document "rate"))
-          rate)
-    (set! (.-value (.getElementById js/document "limit"))
-          limit)
-    (set! (.-value (.getElementById js/document "auto.offset.reset"))
-          (get defaults :auto.offset.reset))))
+    (u/set-dom-element "security.protocol" (get defaults :security.protocol))
+    (u/set-dom-element "sasl.mechanism" (get defaults :sasl.mechanism))
+    (u/set-dom-element "mode" mode)
+    (u/set-dom-element "rate" rate)
+    (u/set-dom-element "limit" limit)
+    (u/set-dom-element "auto.offset.reset" (get defaults :auto.offset.reset))))
 
 (defn start-server []
   (a/go-loop []
