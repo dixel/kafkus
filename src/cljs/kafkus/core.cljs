@@ -214,8 +214,8 @@
                              :sasl.mechanism (get defaults :sasl.mechanism)
                              :limit limit
                              :mode mode
-                             :username (js/decodeURIComponent (cookies/get "kafkus-username"))
-                             :password (js/decodeURIComponent (cookies/get "kafkus-password")))
+                             :username (js/decodeURIComponent (cookies/get-raw "kafkus-username"))
+                             :password (js/decodeURIComponent (cookies/get-raw "kafkus-password")))
                       (assoc-in [:bootstrap :servers]
                                 (get defaults :bootstrap.servers))))
     (u/set-dom-element "security.protocol" (get defaults :security.protocol))
