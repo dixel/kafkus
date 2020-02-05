@@ -4,6 +4,8 @@
             [kafkus.avro :as kavro]
             [kafkus.kafka :as kafka]
             [kafkus.server :as server]
+            [deercreeklabs.lancaster :as avro]
+            [cheshire.core :as json]
             [clojure.core.async :as a]
             [taoensso.timbre :as log]))
 
@@ -33,18 +35,6 @@
         (recur))))
 
   (def incer (atom 0))
-
-  (def plain-avro-schema-config
-    {:bootstrap-servers "localhost:9092"
-     :mode "avro-raw"
-     :schema kavro/complex-schema
-     :channel input
-     :auto.offset.reset "earliest"
-     :enable.auto.commit false
-     :topic "kafkus-sample-raw-avro"
-     :rate 1
-     :payload (kavro/sample-data kavro/complex-schema)
-     :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
   (defn get-schema-registry-config []
     {:bootstrap-servers "localhost:9092"

@@ -52,6 +52,9 @@
       (log/error "can't list topics: " (.getMessage e))
       [:kafkus/error (format "can't list topics: %s" (.getMessage e))])))
 
+(defn produce-message [config]
+  (kafka/produce! (assoc config :schema (kafka/get-schema-for-topic config))))
+
 (defn list-kafkus-schemas [config]
   [:kafkus/list-schemas (avros/list-schemas)])
 
@@ -81,6 +84,11 @@
         :kafkus/list-topics (a/go (chsk-send! uid (list-kafkus-topics msg)))
         :kafkus/list-schemas (chsk-send! uid (list-kafkus-schemas msg))
         :kafkus/get-defaults (chsk-send! uid (get-defaults))
+        :kafkus/get-topic-sample-value (chsk-send! uid [:kafkus/get-topic-sample-value
+                                                        (try (kafka/get-default-payload-for-topic msg)
+                                                             (catch Exception e
+                                                               (log/error "failed to generate default payload: " e)))])
+        :kafkus/send (produce-message msg)
         :chsk/uidport-close (stop-kafkus-consumer uid)
         (log/debug "unknown message with id " msg-id))
       (recur))))

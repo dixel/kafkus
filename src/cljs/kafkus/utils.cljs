@@ -4,6 +4,9 @@
 (defn ->json [data]
   (.stringify js/JSON (clj->js data) nil 2))
 
+(defn json->clj [data]
+  (js->clj (js/JSON.parse data) :keywordize-keys true))
+
 (defn pretty-json [raw-json]
   (try
     (.stringify js/JSON (.parse js/JSON raw-json) nil 2)

@@ -1,5 +1,6 @@
 (ns kafkus.kafka
-  (:require [cyrus-config.core :as conf]
+  (:require [cheshire.core :as json]
+            [cyrus-config.core :as conf]
             [dvlopt.kafka :as K]
             [dvlopt.kafka.admin :as K.admin]
             [dvlopt.kafka.in :as K.in]
@@ -14,7 +15,9 @@
             [clojure.walk :as walk]
             [clojure.core.async :as a]
             [taoensso.timbre :as log])
-  (:import [java.util.concurrent TimeUnit]))
+  (:import [java.util.concurrent TimeUnit]
+           [org.apache.avro Schema$Parser]
+           [org.apache.trevni.avro RandomData]))
 
 (conf/def default-schema-registry-url "URL of Confluent Schema Registry"
   {:spec string?
@@ -94,6 +97,23 @@
       (if (nil? data)
         nil
         (.deserialize deser (:topic config) data)))))
+
+(defn get-schema-for-topic [config]
+  (let [schema-registry-client
+        (schema-registry-client/->schema-registry-client
+         {:base-url
+          (or
+           (get config :schema-registry-url)
+           default-schema-registry-url)})]
+    (.. schema-registry-client (get-latest-schema-by-subject (str (:topic config) "-value")))))
+
+
+(defn get-default-payload-for-topic [config]
+  (let [schema (.parse
+                (doto (new Schema$Parser)
+                  (.setValidateDefaults false))
+                (json/encode (get-schema-for-topic config)))]
+    (json/decode (.toString (-> (.next (.iterator (RandomData. schema 1))))))))
 
 (defn get-mode-deserializer [mode config]
   (case mode

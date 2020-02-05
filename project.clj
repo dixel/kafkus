@@ -14,6 +14,12 @@
                  [dvlopt/kafka "1.3.0-beta0"]
                  [ovotech/kafka-avro-confluent "2.1.0-1"]
                  [deercreeklabs/lancaster "0.6.6"]
+                 [org.apache.avro/trevni-avro "1.8.2"
+                  :classifier "tests"
+                  :exclusions [org.eclipse.jetty/jetty-util]]
+                 [org.apache.avro/trevni-core "1.8.2"
+                  :classifier "tests"
+                  :exclusions [org.eclipse.jetty/jetty-util]]
                  [reagent-forms "0.5.43"]
                  [reagent-utils "0.3.3"]
                  [ring "1.6.3"]
