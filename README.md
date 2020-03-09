@@ -48,7 +48,7 @@ kafka cluster with `docker-compose`. Check [examples](./examples).
 
 ## Roadmap
 - Better process/error communication (connected/failed to connect, etc...)
-- Improving UX and giving frontend part a bit more love (input welcome)
+- Improving UX and giving frontend part a bit more love (input welcome). Tried bootstrap on the consumer side slowed down the UI a lot and I wanted to keep it responsive when consuming > 1000 messages.
 - Supporting other ser/de formats (protobuf, thrift)
 
 ## License
