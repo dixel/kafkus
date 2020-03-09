@@ -5,7 +5,7 @@
                  [reagent "0.8.1"]
                  [cyrus/config "0.2.1"]
                  [mount "0.1.12"]
-                 [com.taoensso/sente "1.14.0-RC2"]
+                 [com.taoensso/sente "1.15.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [com.fzakaria/slf4j-timbre "0.3.8"]
                  [cheshire "5.8.1"]
