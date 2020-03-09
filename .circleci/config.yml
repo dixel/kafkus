@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/kafkus
     branches:
       only:
-        - produce
+        - master
     docker:
       - image: circleci/clojure:lein-2.7.1
     environment:
@@ -29,4 +29,4 @@ jobs:
             docker build -t ${PROJECT}:${VERSION} -t ${PROJECT}:latest .
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push ${PROJECT}:${VERSION}
-            #            docker push ${PROJECT}:latest
+            docker push ${PROJECT}:latest
