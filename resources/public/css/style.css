@@ -48,6 +48,11 @@ select {
   padding: 10px 15px;
 }
 
+.dark-grey {
+  background-color: green;
+  color: black;
+}
+
 input {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -92,6 +97,10 @@ button {
   border: none;
   margin: 2px;
   padding: 8px;
+}
+
+a, a:visited, a:active {
+    color: white;
 }
 
 #wrap {

@@ -45,6 +45,10 @@
   (case [(:request-method request) (:uri request)]
     [:get "/"] (some-> (resource-response "index.html" {:root "public"})
                        (content-type "text/html; charset=utf-8"))
+    [:get "/consumer"] (some-> (resource-response "index.html" {:root "public"})
+                       (content-type "text/html; charset=utf-8"))
+    [:get "/producer"] (some-> (resource-response "produce.html" {:root "public"})
+                              (content-type "text/html; charset=utf-8"))
     [:get "/auth"] (some-> (resource-response "index.html" {:root "public"})
                            (response/set-cookie "kafkus-username"
                                                 (get-in request

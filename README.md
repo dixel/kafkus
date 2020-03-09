@@ -12,12 +12,14 @@
 Provide a minimalistic way to inspect, what kind of data is available in a certain Kafka topic.
 
 ## Features
-- Check contents of a Kafka topic with a functionality similar to `kafkacat`, `kafka-avro-console-consumer` and `kafka-console-consumer`
-- 3 modes:
+- Tail log of a kafka topic (payload, key, offset information)
+- 4 ways of deserializing:
     - confluent schema registry (needs valid schema-registry-url) - handles the schema change on the flight
     - raw text format
     - raw avro schemas uploaded to the server folder (configured with `AVRO_SCHEMAS_PATH` env variable).
-- Rate limiting (server-side, so that the load on Kafka is also limited).
+    - json
+- Producer mode, generates a dummy payload for schema-registry data
+- Rate limiting (server-side, to also limit the load on kafka side).
 
 ## Running Kafkus
 
@@ -27,39 +29,27 @@ You can configure Kafkus with some defaults and run it using docker, or provide 
 docker run -p 4040:4040 -v $PWD/schemas-repository:/tmp \
     -e LOG_LEVEL=debug \
     -e AVRO_SCHEMAS_PATH=/tmp \
-    -e LOAD_DEFAULT_CONFIG: "true" \
-    -e DEFAULT_BOOTSTRAP_SERVER: localhost:9092 \
-    -e DEFAULT_SCHEMA_REGISTRY_URL: "http://localhost:8081" \
-    -e DEFAULT_MODE: avro-schema-registry \
-    -e DEFAULT_AUTO_OFFSET_RESET: earliest \
-    -e DEFAULT_RATE: 1 \
-    -e DEFAULT_LIMIT: 1000 \
+    -e LOAD_DEFAULT_CONFIG=true \
+    -e DEFAULT_BOOTSTRAP_SERVER=localhost:9092 \
+    -e DEFAULT_SCHEMA_REGISTRY_URL=http://localhost:8081 \
+    -e DEFAULT_MODE=avro-schema-registry \
+    -e DEFAULT_AUTO_OFFSET_RESET=earliest \
+    -e DEFAULT_RATE=1 \
+    -e DEFAULT_LIMIT=1000 \
     -ti dixel/kafkus
 ```
 
-Kafkus tries to load the topics from server once the `boostrap.servers` field gets unfocused or the `topic` dropdown menu gets opened.
-In the browser go to http://localhost:4040/, select the topic, adjust the configuration and press "Play" to start consuming the data.
+Kafkus tries to load topics from server once the `boostrap.servers` field gets unfocused or the `topic` dropdown menu gets opened.
+In a browser go to http://localhost:4040/, select some topic, adjust configuration and press "Play" to start consuming.
 
 ## Configuration
-Numerous configuration options are available, you can inspect them in the logs of Kafkus during the startup.
-
-## Implementation
-The design goal was to make the application as composable as possible.
-Clojure/Clojurescript is used as the main language to simplify the process of working with custom schemas.
-For client <-> server communication, amazing [sente](https://github.com/ptaoussanis/sente) is used in `ajax` mode (places where I use Kafkus
-have bad-behaving proxies).
-For stateful components management, [mount](https://github.com/tolitius/mount) is used.
+Kafkus is made mainly to be embeddable into existing dockerized ecosystem. Therefore, it's quite easy to start it together with a sample
+kafka cluster with `docker-compose`. Check [examples](./examples).
 
 ## Roadmap
 - Better process/error communication (connected/failed to connect, etc...)
-- Generating and producing the messages, validating the schema (carefully looking into [lancaster](https://github.com/deercreeklabs/lancaster) library)
-- Improving the UX and giving the frontend part a bit more love (input welcome)
+- Improving UX and giving frontend part a bit more love (input welcome). Tried bootstrap on the consumer side slowed down the UI a lot and I wanted to keep it responsive when consuming > 1000 messages.
 - Supporting other ser/de formats (protobuf, thrift)
-
-## Motivation
-- https://github.com/edenhill/kafkacat/issues/119
-- clojure REPL was just fine for me most of the time, but it's not for everyone (check [samples](./dev/user.clj))
-- POC for not using uber-frameworks for similar projects
 
 ## License
 

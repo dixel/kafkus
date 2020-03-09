@@ -1,0 +1,13 @@
+#logo {
+  font-size: 30px;
+  font-family: monospace;
+  margin-right: 30px;
+  margin-left: 10px;
+  background-color: green;
+}
+
+#logo1 {
+  background-color: black;
+  padding: 5px;
+  color: white;
+}

@@ -1,5 +1,6 @@
 (ns kafkus.kafka
-  (:require [cyrus-config.core :as conf]
+  (:require [cheshire.core :as json]
+            [cyrus-config.core :as conf]
             [dvlopt.kafka :as K]
             [dvlopt.kafka.admin :as K.admin]
             [dvlopt.kafka.in :as K.in]
@@ -14,7 +15,9 @@
             [clojure.walk :as walk]
             [clojure.core.async :as a]
             [taoensso.timbre :as log])
-  (:import [java.util.concurrent TimeUnit]))
+  (:import [java.util.concurrent TimeUnit]
+           [org.apache.avro Schema$Parser]
+           [org.apache.trevni.avro RandomData]))
 
 (conf/def default-schema-registry-url "URL of Confluent Schema Registry"
   {:spec string?
@@ -95,6 +98,23 @@
         nil
         (.deserialize deser (:topic config) data)))))
 
+(defn get-schema-for-topic [config]
+  (let [schema-registry-client
+        (schema-registry-client/->schema-registry-client
+         {:base-url
+          (or
+           (get config :schema-registry-url)
+           default-schema-registry-url)})]
+    (.. schema-registry-client (get-latest-schema-by-subject (str (:topic config) "-value")))))
+
+
+(defn get-default-payload-for-topic [config]
+  (let [schema (.parse
+                (doto (new Schema$Parser)
+                  (.setValidateDefaults false))
+                (json/encode (get-schema-for-topic config)))]
+    (json/decode (.toString (-> (.next (.iterator (RandomData. schema 1))))))))
+
 (defn get-mode-deserializer [mode config]
   (case mode
     "raw" (get K/deserializers :string)
@@ -148,25 +168,33 @@
         control-channel (a/chan)]
     (log/debugf "starting consumer with config: %s" consumer-config)
     (K.in/register-for consumer [(get config :topic)])
-    (a/go-loop [[record & records] (K.in/poll consumer
-                                              {::K/timeout [0 :milliseconds]})]
-      (when-let [value (::K/value record)]
-        (a/<! (a/timeout (/ (.toMillis TimeUnit/SECONDS 1)
-                            (or rate default-rate))))
-        (log/debugf "kafka message: %s" value)
-        (callback value))
-      (cond
-        (= :stop (a/poll! control-channel))
-        (do
-          (log/infof "terminating consumer %s" consumer)
-          (a/close! control-channel)
-          (.close consumer))
+    (a/thread
+      (loop [[record & records] (K.in/poll consumer
+                                           {::K/timeout [0 :milliseconds]})]
+        (let [value (::K/value record)
+              key (::K/key record)
+              offset (::K/offset record)
+              partition (::K/partition record)]
+          (when offset
+            (a/<!! (a/timeout (/ (.toMillis TimeUnit/SECONDS 1)
+                                 (or rate default-rate))))
+            (log/debugf "kafka message: %s" value)
+            (callback {:key key
+                       :offset offset
+                       :partition partition
+                       :value value})))
+        (cond
+          (= :stop (a/poll! control-channel))
+          (do
+            (log/infof "terminating consumer %s" consumer)
+            (a/close! control-channel)
+            (.close consumer))
 
-        (nil? records)
-        (recur (K.in/poll consumer {::K/timeout [0 :milliseconds]}))
+          (nil? records)
+          (recur (K.in/poll consumer {::K/timeout [0 :milliseconds]}))
 
-        :else
-        (recur records)))
+          :else
+          (recur records))))
     control-channel))
 
 (defn stop! [control-channel]

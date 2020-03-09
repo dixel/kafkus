@@ -23,7 +23,8 @@
   (when-let [maybe-connection (get @connections uid)]
     (swap! connections #(dissoc % uid))
     (log/info "stopping connection for uid " uid)
-    (kafka/stop! maybe-connection)))
+    (kafka/stop! maybe-connection))
+  [:kafkus/error "stopped connection to kafka"])
 
 (defn start-kafkus-consumer [uid config]
   (stop-kafkus-consumer uid)
@@ -52,6 +53,9 @@
       (log/error "can't list topics: " (.getMessage e))
       [:kafkus/error (format "can't list topics: %s" (.getMessage e))])))
 
+(defn produce-message [config]
+  (kafka/produce! (assoc config :schema (kafka/get-schema-for-topic config))))
+
 (defn list-kafkus-schemas [config]
   [:kafkus/list-schemas (avros/list-schemas)])
 
@@ -69,21 +73,32 @@
       :auto.offset.reset kafka/default-auto-offset-reset}]
     [:kafkus/no-defaults nil]))
 
+(defn get-topic-sample-value [msg]
+  [:kafkus/get-topic-sample-value
+   (try (kafka/get-default-payload-for-topic msg)
+        (catch Exception e
+          (log/error "failed to generate default payload: " e)))])
+
 (defn start-kafkus-server []
-  (a/go-loop []
-    (let [{:keys [ch-chsk chsk-send!]} sente
-          {:keys [event uid] :as full-message} (a/<! ch-chsk)
-          [msg-id msg] event]
-      (log/debugf "got message in sente channel: %s" [msg-id msg])
-      (case msg-id
-        :kafkus/start (chsk-send! uid (start-kafkus-consumer uid msg))
-        :kafkus/stop (stop-kafkus-consumer uid)
-        :kafkus/list-topics (a/go (chsk-send! uid (list-kafkus-topics msg)))
-        :kafkus/list-schemas (chsk-send! uid (list-kafkus-schemas msg))
-        :kafkus/get-defaults (chsk-send! uid (get-defaults))
-        :chsk/uidport-close (stop-kafkus-consumer uid)
-        (log/debug "unknown message with id " msg-id))
-      (recur))))
+  (a/thread
+    (loop []
+      (let [{:keys [ch-chsk chsk-send!]} sente
+            {:keys [event uid] :as full-message} (a/<!! ch-chsk)
+            [msg-id msg] event
+            async-reply (fn [payload-fn]
+                          (a/thread (chsk-send! uid (payload-fn))))]
+        (log/debugf "got message in sente channel: %s" [msg-id msg])
+        (case msg-id
+          :kafkus/start (async-reply #(start-kafkus-consumer uid msg))
+          :kafkus/stop (a/thread (stop-kafkus-consumer uid))
+          :kafkus/list-topics (async-reply #(list-kafkus-topics msg))
+          :kafkus/list-schemas (async-reply #(list-kafkus-schemas msg))
+          :kafkus/get-defaults (async-reply #(get-defaults))
+          :kafkus/get-topic-sample-value (async-reply #(get-topic-sample-value msg))
+          :kafkus/send (produce-message msg)
+          :chsk/uidport-close (stop-kafkus-consumer uid)
+          (log/debug "unknown message with id " msg-id))))
+    (recur)))
 
 (mount/defstate server
   :start (start-kafkus-server)

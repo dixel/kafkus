@@ -1,11 +1,11 @@
-(defproject kafkus "0.1.1"
+(defproject kafkus "0.2.0"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/clojurescript "1.10.339"]
                  [org.clojure/core.async "0.4.490"]
                  [reagent "0.8.1"]
                  [cyrus/config "0.2.1"]
                  [mount "0.1.12"]
-                 [com.taoensso/sente "1.14.0-RC2"]
+                 [com.taoensso/sente "1.15.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [com.fzakaria/slf4j-timbre "0.3.8"]
                  [cheshire "5.8.1"]
@@ -14,6 +14,12 @@
                  [dvlopt/kafka "1.3.0-beta0"]
                  [ovotech/kafka-avro-confluent "2.1.0-1"]
                  [deercreeklabs/lancaster "0.6.6"]
+                 [org.apache.avro/trevni-avro "1.8.2"
+                  :classifier "tests"
+                  :exclusions [org.eclipse.jetty/jetty-util]]
+                 [org.apache.avro/trevni-core "1.8.2"
+                  :classifier "tests"
+                  :exclusions [org.eclipse.jetty/jetty-util]]
                  [reagent-forms "0.5.43"]
                  [reagent-utils "0.3.3"]
                  [ring "1.6.3"]
