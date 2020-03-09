@@ -86,7 +86,7 @@
             {:keys [event uid] :as full-message} (a/<!! ch-chsk)
             [msg-id msg] event
             async-reply (fn [payload-fn]
-                          (a/thread (chsk-send! uid (time (payload-fn)))))]
+                          (a/thread (chsk-send! uid (payload-fn))))]
         (log/debugf "got message in sente channel: %s" [msg-id msg])
         (case msg-id
           :kafkus/start (async-reply #(start-kafkus-consumer uid msg))

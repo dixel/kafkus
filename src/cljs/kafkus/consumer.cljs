@@ -68,6 +68,10 @@
    [:div {:id "wrap"}
     [:div {:id "left-panel"}
      [:p {:id "logo"} [:b {:id "logo1"} "O_"] "kafkus"]
+     [:div {:align "right"}
+      [:pre {:align "center"}
+       "consumer "
+       [:a {:href "./producer"} "producer"]]]
      (dyn-selector :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL" "SSL"])
      (dyn-selector :sasl.mechanism ["PLAIN" "SSL"]
                    :hidden-fn #(contains? #{"SASL_SSL" "SASL_PLAINTEXT"} (:security.protocol @state)))
@@ -133,5 +137,5 @@
      (for [item (:middle @state)]
        ^{:key (.random js/Math)}
        [:div
-        [:pre item]
-        [:hr]])]]])
+        [:div.dark-grey [:pre (str "partition " (:partition item) " | offset " (:offset item) " | key '" (:key item) "'")]]
+        [:pre (:decoded item)]])]]])

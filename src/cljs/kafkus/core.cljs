@@ -71,10 +71,10 @@
                                          (conj
                                           m
                                           (case (:mode @state)
-                                            "avro-schema-registry" (u/->json msg)
-                                            "avro-raw" (u/->json msg)
-                                            "raw" msg
-                                            "json" (u/pretty-json msg))))))
+                                            "avro-schema-registry" (assoc msg :decoded (u/->json (:value msg)))
+                                            "avro-raw" (assoc msg :decoded (u/->json (:value msg)))
+                                            "raw" (assoc msg :decoded (:value msg))
+                                            "json" (assoc msg :decoded (u/pretty-json (:value msg))))))))
         [:chsk/recv :kafkus/get-topic-sample-value] (->> msg
                                                          u/->json
                                                          u/pretty-json

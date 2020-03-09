@@ -81,6 +81,10 @@
               :style {:height "100vh"}}
     [:div.col-3.bg-secondary {:id "left-panel"}
      [:p {:id "logo"} [:b {:id "logo1"} "O_"] "kafkus"]
+     [:div {:align "right"}
+      [:pre {:align "center"}
+       [:a.text-white {:href "./consumer"} "consumer"]
+       " producer"]]
      [:nav.vertical-navbar.navbar-expand-lg
       (dyn-selector :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL" "SSL"])
       (dyn-selector :sasl.mechanism ["PLAIN" "SSL"]
