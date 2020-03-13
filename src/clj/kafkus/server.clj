@@ -13,6 +13,11 @@
   {:spec boolean?
    :default false})
 
+(conf/def producer-enabled
+  "Enable producer functionality"
+  {:spec boolean?
+   :default true})
+
 (def connections (atom {}))
 
 (defn get-new-group-id []
@@ -54,7 +59,12 @@
       [:kafkus/error (format "can't list topics: %s" (.getMessage e))])))
 
 (defn produce-message [config]
-  (kafka/produce! (assoc config :schema (kafka/get-schema-for-topic config))))
+  (try
+    (when producer-enabled
+      (kafka/produce! (assoc config :schema (kafka/get-schema-for-topic config))))
+    (catch Exception e
+      (log/error "can't produce message: " (.getMessage e))
+      [:kafkus/error (format "can't produce message: " (.getMessage e))])))
 
 (defn list-kafkus-schemas [config]
   [:kafkus/list-schemas (avros/list-schemas)])
@@ -75,7 +85,9 @@
 
 (defn get-topic-sample-value [msg]
   [:kafkus/get-topic-sample-value
-   (try (kafka/get-default-payload-for-topic msg)
+   (try (if producer-enabled
+          (kafka/get-default-payload-for-topic msg)
+          {:error "producer functionality disabled on that setup"})
         (catch Exception e
           (log/error "failed to generate default payload: " e)))])
 
