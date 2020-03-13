@@ -89,7 +89,8 @@
           (kafka/get-default-payload-for-topic msg)
           {:error "producer functionality disabled on that setup"})
         (catch Exception e
-          (log/error "failed to generate default payload: " e)))])
+          (log/error "failed to generate default payload: " e)
+          {:error (.getMessage e)}))])
 
 (defn start-kafkus-server []
   (a/thread
