@@ -28,7 +28,7 @@
   [:textarea
    {:id id
     :field :textarea
-    :placeholder "; single message\n; transformation\n; (clojure)\n; msg bound to `i`\n; EXAMPLES:\n(identity i)\n(get i :key)"}])
+    :placeholder "; single message\n; transformation\n; (clojure)\n; msg bound to `i`\n; EXAMPLES:\ni\n; or\n(get i :key)\n; or\n(str \"id is\"\n  (get-in i\n    [:value :id])))"}])
 
 (defn playback [hidden-fn]
   (let [{:keys [send! receive]} @state]
@@ -155,7 +155,7 @@
       "clear"]
      (for [item (:middle @state)]
        ^{:key (.random js/Math)}
-       (if @transform-code
+       (if (not (empty? @transform-code))
          [:div
           [:div.dark-grey [:pre " "]]
           [:pre (u/->json (try
