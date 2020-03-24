@@ -25,7 +25,8 @@
                  [ring "1.6.3"]
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.4.0"]
-                 [ring-basic-authentication "1.0.5"]]
+                 [ring-basic-authentication "1.0.5"]
+                 [borkdude/sci "0.0.13-alpha.12"]]
   :main kafkus.core
   :source-paths ["src/clj", "src/cljs"]
   :uberjar-name "kafkus.jar"

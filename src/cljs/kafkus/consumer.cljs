@@ -1,7 +1,15 @@
 (ns kafkus.consumer
   (:require [kafkus.config :refer [state get-config default-limit count-rate topics play? schemas default-rate middle reverse-count-rate]]
             [cljs.core.async :as a]
-            [reagent-forms.core :refer [bind-fields]]))
+            [cljs.pprint :as pprint]
+            [sci.core :as sci]
+            [reagent-forms.core :refer [bind-fields]]
+            [taoensso.timbre :as log]
+            [reagent.core :as reagent]
+            [kafkus.utils :as u]))
+
+(def transform-code
+  (reagent/cursor state [:transformation]))
 
 (defn config-input
   "configuration text input"
@@ -13,6 +21,14 @@
     :placeholder field
     :disabled @play?
     :field (if password? :password :text)}])
+
+(defn transformation
+  "transform output function"
+  [id]
+  [:textarea
+   {:id id
+    :field :textarea
+    :placeholder "; single message\n; transformation\n; (clojure)\n; msg bound to `i`\n; EXAMPLES:\n(identity i)\n(get i :key)"}])
 
 (defn playback [hidden-fn]
   (let [{:keys [send! receive]} @state]
@@ -128,7 +144,10 @@
         :id :limit}]
       state]
      [:div {:style {:padding "10px"}}]
-     [:label.total "received total:" (:message-count @state)]]
+     [:label.total "received total:" (:message-count @state)]
+     [bind-fields
+      (transformation :transformation)
+      state]]
     [:div {:id "middle-panel"}
      [:button.clear
       {:on-click (fn [_]
@@ -136,6 +155,13 @@
       "clear"]
      (for [item (:middle @state)]
        ^{:key (.random js/Math)}
-       [:div
-        [:div.dark-grey [:pre (str "partition " (:partition item) " | offset " (:offset item) " | key '" (:key item) "'")]]
-        [:pre (:decoded item)]])]]])
+       (if @transform-code
+         [:div
+          [:div.dark-grey [:pre " "]]
+          [:pre (u/->json (try
+                            (sci/eval-string @transform-code {:bindings {'i item}})
+                            (catch :default e
+                              e)))]]
+         [:div
+          [:div.dark-grey [:pre (str "partition " (:partition item) " | offset " (:offset item) " | key '" (:key item) "'")]]
+          [:pre (:decoded item)]]))]]])

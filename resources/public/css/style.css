@@ -50,10 +50,11 @@ select {
 
 .dark-grey {
   background-color: green;
+  width: 100%;
   color: black;
 }
 
-input {
+input, textarea {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
@@ -64,6 +65,11 @@ input {
   border: none;
   margin: 2px;
   font-size: 15px;
+  font-family: monospace;
+}
+
+textarea {
+  height: 20em;
   font-family: monospace;
 }
 
