@@ -20,6 +20,7 @@ Provide a minimalistic way to inspect, what kind of data is available in a certa
     - json
 - Producer mode, generates a dummy payload for schema-registry data
 - Rate limiting (server-side, to also limit the load on kafka side).
+- Single message transformation (client-side) with https://github.com/borkdude/sci
 
 ## Running Kafkus
 
