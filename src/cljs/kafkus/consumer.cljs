@@ -156,12 +156,13 @@
      (for [item (:middle @state)]
        ^{:key (.random js/Math)}
        (if (not (empty? @transform-code))
-         [:div
-          [:div.dark-grey [:pre " "]]
-          [:pre (u/->json (try
-                            (sci/eval-string @transform-code {:bindings {'i item}})
-                            (catch :default e
-                              e)))]]
+         (when-let [msg (try
+                          (sci/eval-string @transform-code {:bindings {'i item}})
+                          (catch :default e
+                            e))]
+           [:div
+            [:div.dark-grey [:pre " "]]
+            [:pre (u/->json msg)]])
          [:div
           [:div.dark-grey [:pre (str "partition " (:partition item) " | offset " (:offset item) " | key '" (:key item) "'")]]
           [:pre (:decoded item)]]))]]])
