@@ -51,6 +51,9 @@
 (def middle
   (reagent/cursor state [:middle]))
 
+(def errors
+  (reagent/cursor state [:errors]))
+
 (def play?
   (reagent/cursor state [:play?]))
 
@@ -65,7 +68,7 @@
    :schema-registry-url (get @state :schema-registry-url)
    :auto.offset.reset (get @state :auto.offset.reset)
    :schema (get-in @state [:schemas (get @state :schema)])
-   :mode (get @state :mode)
+   :mode (or (get @state :value.deserializer) (get @state :mode))
    :payload (u/json->clj @payload)
    :rate (count-rate (get @state :rate default-rate))
    :topic (get @state :topic)

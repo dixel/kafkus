@@ -6,6 +6,7 @@
                                    default-rate
                                    get-config
                                    middle
+                                   errors
                                    payload
                                    play?
                                    reverse-count-rate
@@ -14,6 +15,7 @@
                                    topics]]
             [kafkus.utils :as u]
             [kafkus.consumer :as consumer]
+            [kafkus.new-consumer :as new-consumer]
             [kafkus.producer :as producer]
             [goog.string :as gstring]
             [goog.string.format]
@@ -36,6 +38,7 @@
                              :sasl.mechanism (get defaults :sasl.mechanism)
                              :limit limit
                              :mode mode
+                             :value.deserializer mode
                              :username (js/decodeURIComponent (cookies/get-raw "kafkus-username"))
                              :password (js/decodeURIComponent (cookies/get-raw "kafkus-password")))
                       (assoc-in [:bootstrap :servers]
@@ -60,7 +63,9 @@
       (case [msg-type msg-tag]
         [:chsk/recv :kafkus/list-topics] (do (reset! connected? true) (reset! topics (sort msg)))
         [:chsk/recv :kafkus/list-schemas] (reset! schemas msg)
-        [:chsk/recv :kafkus/error] (reset! middle [msg])
+        [:chsk/recv :kafkus/error] (do (reset! connected? false)
+                                       (reset! errors msg)
+                                       (js/alert msg))
         [:chsk/recv :kafkus/defaults] (set-defaults msg)
         [:chsk/recv :kafkus/message] (swap!
                                       middle
@@ -90,6 +95,8 @@
            (case js.window.location.pathname
              "/consumer" (reagent/render [consumer/app]
                                          (js/document.getElementById "app"))
+             "/new-consumer" (reagent/render [new-consumer/app]
+                                             (js/document.getElementById "app"))
              "/producer" (reagent/render [producer/app]
                                          (js/document.getElementById "app"))
              (reagent/render [consumer/app]
