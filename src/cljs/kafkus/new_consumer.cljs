@@ -31,7 +31,7 @@
         "")]]))
 
 (defn dropdown-menu [id items]
-  [:li.nav-item.dropdown.p-2
+  [:span.nav-item.dropdown.p-2
    [:a.nav-link.dropdown-toggle
     {:href "#"
      :id (str id "-menu")
@@ -56,7 +56,7 @@
     :placeholder (name id)}])
 
 (defn dropdown-text [id]
-  [:li.nav-item.dropdown.p-2
+  [:span.nav-item.dropdown.p-2
    [:a.nav-link.dropdown-toggle
     {:href "#"
      :id (str id "-dropdown")
@@ -72,7 +72,6 @@
 
 (defn credentials []
   [:li.nav-item.dropdown
-   {:visible? (constantly false)}
    [:a.nav-link.dropdown-toggle
     {:href "#"
      :id "credentials"
@@ -88,64 +87,48 @@
      [bind-fields (input-row :password :password) state]]]
    (badge :username)])
 
-(def dialog
-  )
-
 (defn app []
   [:div
-   [:ul.nav.navbar.navbar-expand-lg.navbar-light.bg-light
-    [:div.row.justify-content-between
-     [:div.navbar-brand.col-4 {:href "#"}
-      [:img.img-fluid {:src "./pic/kafkus.png"
-                       :width "100px"}]]
-     [:button.navbar-toggler
-      {:type "button"
-       :data-toggle "collapse"
-       :data-target "#navbarSupportedContent"
-       :aria-controls "navbarSupportedContent"
-       :aria-expanded "false"
-       :aria-label "toggle naviga"}
-      [:span.navbar-toggler-icon]]
-     [:div.col-5
-      {:on-click (fn []
+   [:div.row.justify-content-between
+    [:div.col-2.p-3
+     {:href "#"}
+     [:div.row
+      [:div.col
+       [:img.img-fluid {:src "./pic/kafkus.png"}]]]]
+    [:div.col-10.border-right.btn-group
+     [:button.btn.dropdown-toggle.bg-light.btn-lg
+      {:href "#"
+       :on-click (fn []
                    (log/info "sending...")
                    ((:send! @state)
-                    [:kafkus/list-topics (get-config)]))}
-      [:div.collapse.navbar-collapse
-       {:id "navbarSupportedContent"}
-       [:ul.navbar-nav.mr-auto
-        [:div.dropdown.border-right.pr-5.p-3.mr-5
-         [:a.nav-link.dropdown-toggle
-          {:href "#"
-           :id "topics-dropdown"
-           :role "button"
-           :data-toggle "dropdown"
-           :aria-haspopup "true"
-           :aria-expanded "false"}
-          (or (get @state :topic) "topic")]
+                    [:kafkus/list-topics (get-config)]))
+       :id "topics-dropdown"
+       :role "button"
+       :data-toggle "dropdown"
+       :aria-haspopup "true"
+       :aria-expanded "false"}
+      "topic"]
 
-         [:div.dropdown-menu
-          {:aria-labelledby "topics-dropdown"}
-          (for [i @topics]
-            ^{:key (.random js/Math)}
-            [:a.dropdown-item
-             {:on-click (fn [] (swap! state #(assoc % :topic i)))} i])]]
-        [:li.nav-item.p-3.mr-3.pr-5.border-right
-         {:class (when-not @connected? "disabled")}
-         [:a.nav-link [:i.fas.fa-play]]]
-        [:span.navbar-text.p-3.mr-3.pr-5.border-right
-         [:span.navbar-text
-          (if @connected?
-            [:i.fa.fa-link]
-            [:i.fa.fa-unlink])
-          (str " " (get-in @state [:bootstrap :servers]) " ")]]
-        [:li.nav-item.p-3.mr-2.pr-4.border-right
-         [:a.nav-link
-          {:data-toggle "modal"
-           :data-target "#kafka-settings"}
-          [:i.fa.fa-cog]]]]]]]]
+     [:div.dropdown-menu
+      {:aria-labelledby "topics-dropdown"}
+      (for [i @topics]
+        ^{:key (.random js/Math)}
+        [:a.dropdown-item
+         {:on-click (fn [] (swap! state #(assoc % :topic i)))} i])]
+     [:button.btn.bg-light.btn-lg.border-left
+      {:class (when-not @connected? "disabled")}
+      [:i.fas.fa-play]]
+     [:button.btn.bg-light.btn-lg.border-left
+      (if @connected?
+        [:i.fa.fa-link]
+        [:i.fa.fa-unlink])
+      (str " " (get-in @state [:bootstrap :servers]) " ")]
+     [:button.btn.bg-light.btn-lg.border-left
+      {:data-toggle "modal"
+       :data-target "#kafka-settings"}
+      [:i.fa.fa-cog]]]]
    [:div#kafka-settings.modal.fade
-    {:tabindex -1
+    {:tabIndex -1
      :role "dialog"
      :aria-labelledby "kafka-settings-label"
      :aria-hidden "true"}
@@ -162,11 +145,11 @@
          [:i.fa.fa-times]]]]
       [:div.modal-body
        [:div.container
-        [:div.row.border-bottom
+        [:div.row.border-right-bottom
          [:p.p-3 "Kafka"]
          (dropdown-text :bootstrap.servers)
          (dropdown-menu :auto.offset.reset ["earliest" "latest"])]
-        [:div.row.border-bottom
+        [:div.row.border-right-bottom
          [:p.p-3 "Ser/de"]
          (dropdown-menu :value.deserializer ["raw" "json" "avro-raw" "avro-schema-registry"])
          (dropdown-text :schema-registry-url)]
