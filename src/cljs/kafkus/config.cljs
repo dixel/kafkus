@@ -26,6 +26,7 @@
            :left-panel nil
            :topics []
            :schemas []
+           :status nil
            :message-count 0
            :middle nil})))
 
@@ -59,6 +60,9 @@
 
 (def connected?
   (reagent/cursor state [:connected]))
+
+(def status
+  (reagent/cursor state [:status]))
 
 (def plaintext-jaas-template
   "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";")

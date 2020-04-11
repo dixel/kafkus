@@ -6,6 +6,8 @@
                                    topics
                                    play?
                                    schemas
+                                   status
+                                   errors
                                    default-rate
                                    middle
                                    reverse-count-rate
@@ -98,17 +100,16 @@
     [:div.col-10.border-right.btn-group
      [:button.btn.dropdown-toggle.bg-light.btn-lg
       {:href "#"
-       :on-click (fn []
-                   (log/info "sending...")
-                   ((:send! @state)
-                    [:kafkus/list-topics (get-config)]))
+       :on-mouse-over (fn []
+                        (log/info "sending...")
+                        ((:send! @state)
+                         [:kafkus/list-topics (get-config)]))
        :id "topics-dropdown"
        :role "button"
        :data-toggle "dropdown"
        :aria-haspopup "true"
        :aria-expanded "false"}
       "topic"]
-
      [:div.dropdown-menu
       {:aria-labelledby "topics-dropdown"}
       (for [i @topics]
@@ -116,9 +117,31 @@
         [:a.dropdown-item
          {:on-click (fn [] (swap! state #(assoc % :topic i)))} i])]
      [:button.btn.bg-light.btn-lg.border-left
-      {:class (when-not @connected? "disabled")}
-      [:i.fas.fa-play]]
+      {:class (when-not @connected? "disabled")
+       :on-click (fn []
+                   (let [{:keys [send!]} @state]
+                     (if @play?
+                       (do
+                         (reset! status "")
+                         (reset! play? false)
+                         (send! [:kafkus/stop :stop])
+                         (a/go
+                           (a/<! (a/timeout 500))))
+                       (do
+                         (reset! status (str "consuming from " (@state :topic)))
+                         (reset! play? true)
+                         (swap! state #(assoc % :middle '()))
+                         (swap! state #(assoc % :message-count 0))
+                         (send! [:kafkus/stop :stop])
+                         (send! [:kafkus/start (get-config)])))))}
+      (if @play?
+        [:i.fas.fa-stop]
+        [:i.fas.fa-play])]
      [:button.btn.bg-light.btn-lg.border-left
+      {:on-click (fn []
+                   (log/info "sending...")
+                   ((:send! @state)
+                    [:kafkus/list-topics (get-config)]))}
       (if @connected?
         [:i.fa.fa-link]
         [:i.fa.fa-unlink])
@@ -167,36 +190,17 @@
    [:pre.pre-scrollable.bg-dark.text-white.p-3
     {:style {:max-height "75vh"
              :height "75vh"}}
+    [:font.text-success 
+     @status]
+    "\n"
+    [:font.text-danger
+     @errors]
     (for [i (:middle @state)]
       ^{:key (.random js/Math)}
       [:div [:font {:color "#5bc0de "}
-             (apply str (repeat 5 "█"))
-             (str  " partition " (:partition i) " █ offset " (:offset i) " █ key '"
+             (apply str (repeat 5 "-"))
+             (str  " partition " (:partition i) " - offset " (:offset i) " - key '"
                    (str/replace (:key i) #"\n|\r" "")
                    "' "
-                   (apply str (repeat 20 "█")) "\n")]
+                   (apply str (repeat 20 "-")) "\n")]
        (:decoded i)])]])
-
-(defn playback [hidden-fn]
-  (let [{:keys [send! receive]} @state]
-    [:div
-     [:button.playback
-      {:hidden (hidden-fn)
-       :on-click
-       (fn []
-         (reset! play? true)
-         (swap! state #(assoc % :middle '()))
-         (swap! state #(assoc % :message-count 0))
-         (send! [:kafkus/stop :stop])
-         (send! [:kafkus/start (get-config)]))}
-      [:i {:class "fas fa-play"
-           :style {"fontSize" "25px"}}]]
-     [:button.playback
-      {:hidden (not (hidden-fn))
-       :on-click (fn []
-                   (reset! play? false)
-                   (send! [:kafkus/stop :stop])
-                   (a/go
-                     (a/<! (a/timeout 500))))}
-      [:i {:class "fas fa-stop"
-           :style {"fontSize" "25px"}}]]]))

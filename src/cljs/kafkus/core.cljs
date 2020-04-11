@@ -12,6 +12,7 @@
                                    reverse-count-rate
                                    schemas
                                    state
+                                   status
                                    topics]]
             [kafkus.utils :as u]
             [kafkus.consumer :as consumer]
@@ -61,11 +62,14 @@
         ((:send! @state) [:kafkus/list-schemas (get-config)])
         ((:send! @state) [:kafkus/get-defaults {}]))
       (case [msg-type msg-tag]
-        [:chsk/recv :kafkus/list-topics] (do (reset! connected? true) (reset! topics (sort msg)))
+        [:chsk/recv :kafkus/list-topics] (do
+                                           (reset! status (str "connected to " (get-in @state [:bootstrap :servers])))
+                                           (reset! errors nil)
+                                           (reset! connected? true)
+                                           (reset! topics (sort msg)))
         [:chsk/recv :kafkus/list-schemas] (reset! schemas msg)
         [:chsk/recv :kafkus/error] (do (reset! connected? false)
-                                       (reset! errors msg)
-                                       (js/alert msg))
+                                       (reset! errors msg))
         [:chsk/recv :kafkus/defaults] (set-defaults msg)
         [:chsk/recv :kafkus/message] (swap!
                                       middle
