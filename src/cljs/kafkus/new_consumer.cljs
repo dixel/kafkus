@@ -118,7 +118,7 @@
         [:div [:font {:color "#5bc0de "}
                (apply str (repeat 5 "-"))
                (str  " partition " partition " - offset " offset " - key '"
-                     (str/replace key #"\n|\r" "")
+                     (str/replace key #"\n|\r" "") ; avoid corrupting output if non-string keys contain newline symbols
                      "' "
                      (apply str (repeat 20 "-")) "\n")]
          (if (empty? @smt)
