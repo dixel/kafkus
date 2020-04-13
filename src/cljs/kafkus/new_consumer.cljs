@@ -12,6 +12,7 @@
                                    middle
                                    reverse-count-rate
                                    connected?]]
+            [kafkus.info :refer [info]]
             [cljs.core.async :as a]
             [cljs.pprint :as pprint]
             [sci.core :as sci]
@@ -51,19 +52,6 @@
         :id id
         :placeholder (name id)}]]]))
 
-(defn input-row-old [id type]
-  [:div.row.p-2
-   (let [append-id (str (name id) "-append")]
-     [:div.input-group
-      [:div.input-group-prepend.w-25
-       [:span.input-group-text.text-center.w-100.text-truncate (name id)]]
-      [:input.form-control
-       {:type type
-        :field type
-        :aria-describedby append-id
-        :id id
-        :placeholder (name id)}]])])
-
 (defn dropdown-text [id & {:keys [type]}]
   [bind-fields (input-row id (or type :text)) state])
 
@@ -98,6 +86,26 @@
        (when (#{"SASL_PLAINTEXT" "SASL_SSL"} (@state :security.protocol))
          (dropdown-text :password :type :password))]]]]])
 
+(defn modal-info []
+  [:div#kafkus-info.modal.fade
+   {:tabIndex -1
+    :role "dialog"
+    :aria-labelledby "kafka-settings-label"
+    :aria-hidden "true"}
+   [:div.modal-dialog.modal-lg {:role "document"}
+    [:div.modal-content
+     [:div.modal-header
+      [:h5.modal-title "Kafkus"]
+      [:button.close
+       {:type "button"
+        :data-dismiss "modal"
+        :aria-label "Close"}
+       [:span
+        {:aria-hidden "true"}
+        [:i.fa.fa-times]]]]
+     [:div.modal-body
+      info]]]])
+
 (defn output []
   [:div.row
    {:style {:min-height "70vh" :max-height "70vh" :height "70vh"}}
@@ -124,12 +132,13 @@
          (if (empty? @smt)
            (:decoded i)
            (try
-             (u/->json (sci/eval-string @smt {:bindings {'i i
-                                                         'partition partition
-                                                         'offset offset
-                                                         'key key
-                                                         'value value
-                                                         'decoded decoded}}))
+             (when-let [result (sci/eval-string @smt {:bindings {'i i
+                                                                 'partition partition
+                                                                 'offset offset
+                                                                 'key key
+                                                                 'value value
+                                                                 'decoded decoded}})]
+               (u/->json result))
              (catch :default e
                [:div
                 [:font.text-danger (str "failed executing: " e "\noriginal message:\n")]
@@ -229,7 +238,10 @@ key    - message key (as string)
    {:style {:min-height "20vh"
             :height "20vh"}}
    [:div.col-9.text-right.p-1.w-100.bg-light.btn-group
-    [:button.btn.btn-primary.h-100 [:i.fa.fa-info]]
+    [:button.btn.btn-primary.h-100
+     {:data-toggle "modal"
+      :data-target "#kafkus-info"}
+     [:i.fa.fa-info]]
     [bind-fields (#(identity [:textarea.form-control.custom-control.h-100.p-2.rounded-0.border-left-0
                               {:field :textarea
                                :id :smt
@@ -255,4 +267,5 @@ key    - message key (as string)
    (menu)
    (modal)
    (output)
-   (bottom)])
+   (bottom)
+   (modal-info)])

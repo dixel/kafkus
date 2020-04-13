@@ -111,8 +111,13 @@
                                          [:kafkus/list-topics (get-config)]))))
              "/producer" (reagent/render [producer/app]
                                          (js/document.getElementById "app"))
-             (reagent/render [consumer/app]
-                             (js/document.getElementById "app"))))
+             (do (reagent/render [new-consumer/app]
+                                 (js/document.getElementById "app"))
+                 (.on (js/$ "#kafka-settings")
+                      "hide.bs.modal"
+                      (fn []
+                        ((:send! @state)
+                         [:kafkus/list-topics (get-config)]))))))
   :stop :pass)
 
 (mount/start)
