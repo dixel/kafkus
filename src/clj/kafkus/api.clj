@@ -26,7 +26,8 @@
 
 (conf/def cookie-expiration-seconds "number of seconds to get the cookies expired"
   {:spec integer?
-   :default 1209600})
+   :default 5259492
+   })
 
 (defn sample-resp-wrapper [resp]
   (log/info (keys resp))

@@ -49,7 +49,10 @@
     (u/set-dom-element "mode" mode)
     (u/set-dom-element "rate" rate)
     (u/set-dom-element "limit" limit)
-    (u/set-dom-element "auto.offset.reset" (get defaults :auto.offset.reset))))
+    (u/set-dom-element "auto.offset.reset" (get defaults :auto.offset.reset)))
+  (swap! status #(conj % (str "loaded default configuration for [" (get defaults :bootstrap.servers) "]")))
+  ((:send! @state)
+   [:kafkus/list-topics (get-config)]))
 
 (defn start-server []
   (a/go-loop []
@@ -63,13 +66,13 @@
         ((:send! @state) [:kafkus/get-defaults {}]))
       (case [msg-type msg-tag]
         [:chsk/recv :kafkus/list-topics] (do
-                                           (reset! status (str "connected to " (get-in @state [:bootstrap :servers])))
+                                           (swap! status #(conj % (str "connected to " (get-in @state [:bootstrap :servers]))))
                                            (reset! errors nil)
                                            (reset! connected? true)
                                            (reset! topics (sort msg)))
         [:chsk/recv :kafkus/list-schemas] (reset! schemas msg)
         [:chsk/recv :kafkus/error] (do (reset! connected? false)
-                                       (reset! errors msg))
+                                       (swap! errors #(conj % msg)))
         [:chsk/recv :kafkus/defaults] (set-defaults msg)
         [:chsk/recv :kafkus/message] (swap!
                                       middle
@@ -99,8 +102,13 @@
            (case js.window.location.pathname
              "/consumer" (reagent/render [consumer/app]
                                          (js/document.getElementById "app"))
-             "/new-consumer" (reagent/render [new-consumer/app]
-                                             (js/document.getElementById "app"))
+             "/new-consumer" (do (reagent/render [new-consumer/app]
+                                                 (js/document.getElementById "app"))
+                                 (.on (js/$ "#kafka-settings")
+                                      "hide.bs.modal"
+                                      (fn []
+                                        ((:send! @state)
+                                         [:kafkus/list-topics (get-config)]))))
              "/producer" (reagent/render [producer/app]
                                          (js/document.getElementById "app"))
              (reagent/render [consumer/app]

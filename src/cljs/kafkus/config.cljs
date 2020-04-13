@@ -26,7 +26,8 @@
            :left-panel nil
            :topics []
            :schemas []
-           :status nil
+           :status '()
+           :errors '()
            :message-count 0
            :middle nil})))
 
