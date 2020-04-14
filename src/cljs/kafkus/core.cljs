@@ -95,14 +95,20 @@
         (log/debug "[cljs] unknown event: " event)))
     (recur)))
 
-(defn try-register-settings []
-  (if js/window.jQuery
-    (.on (js/$ "#kafka-settings")
-         "hide.bs.modal"
-         (fn []
-           ((:send! @state)
-            [:kafkus/list-topics (get-config)])))
-    (js/setTimeout (fn [] (try-register-settings)) 50)))
+(defn try-register-settings
+  ([] (try-register-settings 1000))
+  ([timeout]
+   (js/setTimeout (fn []
+                    (log/info "registering modal close events...")
+                    (try
+                      (.on (js/$ "#kafka-settings")
+                           "hide.bs.modal"
+                           (fn []
+                             ((:send! @state)
+                              [:kafkus/list-topics (get-config)])))
+                      (catch :default e
+                        (log/error "failed to register modal close events: " e)
+                        (try-register-settings (* 2 timeout))))) timeout)))
 
 (mount/defstate core
   :start (do
