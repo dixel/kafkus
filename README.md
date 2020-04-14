@@ -45,6 +45,10 @@ kafka cluster with `docker-compose`. Check [examples](./examples).
 - Supporting other ser/de formats (protobuf, thrift).
 - Command-line utility (hopefully a native binary built with GraalVM) to work with the server through WebSockets interface.
 
+## Thanks
+
+For great UI/UX contribution and one weekend wasted together to [@vbldra](https://www.freelancer.in/u/vbldra#)
+
 ## License
 
 Copyright © 2018 Avdiushkin Vasilii
