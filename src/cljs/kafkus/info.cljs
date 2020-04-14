@@ -42,15 +42,14 @@
         [:a {:href "https://clojure.org/guides/threading_macros"} " (threading macros)"]]
        [:li [:code "(map :name (-> value :customers))"] " - getting names of all the customers in a message"]]]
      [:li "Variables, bindings"
-      [:p
-       [:pre.border.rounded.bg-dark.text-white
-        "(def customers-count
+      [:pre.border.rounded.bg-dark.text-white
+       "(def customers-count
   (-> value :customers count))
 (assoc value :customers-count customers-count)"]
-       [:pre.border.rounded.bg-dark.text-white
-        "(let [customers-count (-> value :customers count)]
+      [:pre.border.rounded.bg-dark.text-white
+       "(let [customers-count (-> value :customers count)]
   (assoc value :customers-count customers-count))"]
-       "Both snippets doing pretty much the same, adding number of customers to the payload"]]]]
+      [:p "Both snippets doing pretty much the same, adding number of customers to the payload"]]]]
    [:div.row.p-2
     [:h2 "Feedback"]]
    [:div.row.p-2

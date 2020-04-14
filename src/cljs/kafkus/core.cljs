@@ -95,6 +95,15 @@
         (log/debug "[cljs] unknown event: " event)))
     (recur)))
 
+(defn try-register-settings []
+  (if js/window.jQuery
+    (.on (js/$ "#kafka-settings")
+         "hide.bs.modal"
+         (fn []
+           ((:send! @state)
+            [:kafkus/list-topics (get-config)])))
+    (js/setTimeout (fn [] (try-register-settings)) 50)))
+
 (mount/defstate core
   :start (do
            (start-server)
@@ -104,20 +113,12 @@
                                          (js/document.getElementById "app"))
              "/new-consumer" (do (reagent/render [new-consumer/app]
                                                  (js/document.getElementById "app"))
-                                 (.on (js/$ "#kafka-settings")
-                                      "hide.bs.modal"
-                                      (fn []
-                                        ((:send! @state)
-                                         [:kafkus/list-topics (get-config)]))))
+                                 (try-register-settings))
              "/producer" (reagent/render [producer/app]
                                          (js/document.getElementById "app"))
              (do (reagent/render [new-consumer/app]
                                  (js/document.getElementById "app"))
-                 (.on (js/$ "#kafka-settings")
-                      "hide.bs.modal"
-                      (fn []
-                        ((:send! @state)
-                         [:kafkus/list-topics (get-config)]))))))
+                 (try-register-settings))))
   :stop :pass)
 
 (mount/start)
