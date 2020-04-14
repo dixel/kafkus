@@ -6,14 +6,17 @@
                                    default-rate
                                    get-config
                                    middle
+                                   errors
                                    payload
                                    play?
                                    reverse-count-rate
                                    schemas
                                    state
+                                   status
                                    topics]]
             [kafkus.utils :as u]
             [kafkus.consumer :as consumer]
+            [kafkus.new-consumer :as new-consumer]
             [kafkus.producer :as producer]
             [goog.string :as gstring]
             [goog.string.format]
@@ -36,6 +39,7 @@
                              :sasl.mechanism (get defaults :sasl.mechanism)
                              :limit limit
                              :mode mode
+                             :value.deserializer mode
                              :username (js/decodeURIComponent (cookies/get-raw "kafkus-username"))
                              :password (js/decodeURIComponent (cookies/get-raw "kafkus-password")))
                       (assoc-in [:bootstrap :servers]
@@ -45,7 +49,10 @@
     (u/set-dom-element "mode" mode)
     (u/set-dom-element "rate" rate)
     (u/set-dom-element "limit" limit)
-    (u/set-dom-element "auto.offset.reset" (get defaults :auto.offset.reset))))
+    (u/set-dom-element "auto.offset.reset" (get defaults :auto.offset.reset)))
+  (swap! status #(conj % (str "loaded default configuration for [" (get defaults :bootstrap.servers) "]")))
+  ((:send! @state)
+   [:kafkus/list-topics (get-config)]))
 
 (defn start-server []
   (a/go-loop []
@@ -58,9 +65,14 @@
         ((:send! @state) [:kafkus/list-schemas (get-config)])
         ((:send! @state) [:kafkus/get-defaults {}]))
       (case [msg-type msg-tag]
-        [:chsk/recv :kafkus/list-topics] (do (reset! connected? true) (reset! topics (sort msg)))
+        [:chsk/recv :kafkus/list-topics] (do
+                                           (swap! status #(conj % (str "connected to " (get-in @state [:bootstrap :servers]))))
+                                           (reset! errors nil)
+                                           (reset! connected? true)
+                                           (reset! topics (sort msg)))
         [:chsk/recv :kafkus/list-schemas] (reset! schemas msg)
-        [:chsk/recv :kafkus/error] (reset! middle [msg])
+        [:chsk/recv :kafkus/error] (do (reset! connected? false)
+                                       (swap! errors #(conj % msg)))
         [:chsk/recv :kafkus/defaults] (set-defaults msg)
         [:chsk/recv :kafkus/message] (swap!
                                       middle
@@ -83,6 +95,23 @@
         (log/debug "[cljs] unknown event: " event)))
     (recur)))
 
+(defn try-register-settings
+  ([] (try-register-settings 1000))
+  ([timeout]
+   (js/setTimeout (fn []
+                    (log/info "registering modal close events...")
+                    (try
+                      (.call
+                       (goog.object/get (js/jQuery "#kafka-settings") "on")
+                       (js/jQuery "#kafka-settings")
+                       "hide.bs.modal"
+                       (fn []
+                         ((:send! @state)
+                          [:kafkus/list-topics (get-config)])))
+                      (catch :default e
+                        (log/error "failed to register modal close events: " e)
+                        (try-register-settings (* 2 timeout))))) timeout)))
+
 (mount/defstate core
   :start (do
            (start-server)
@@ -90,10 +119,14 @@
            (case js.window.location.pathname
              "/consumer" (reagent/render [consumer/app]
                                          (js/document.getElementById "app"))
+             "/new-consumer" (do (reagent/render [new-consumer/app]
+                                                 (js/document.getElementById "app"))
+                                 (try-register-settings))
              "/producer" (reagent/render [producer/app]
                                          (js/document.getElementById "app"))
-             (reagent/render [consumer/app]
-                             (js/document.getElementById "app"))))
+             (do (reagent/render [new-consumer/app]
+                                 (js/document.getElementById "app"))
+                 (try-register-settings))))
   :stop :pass)
 
 (mount/start)

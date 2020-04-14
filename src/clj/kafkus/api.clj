@@ -26,7 +26,8 @@
 
 (conf/def cookie-expiration-seconds "number of seconds to get the cookies expired"
   {:spec integer?
-   :default 1209600})
+   :default 5259492
+   })
 
 (defn sample-resp-wrapper [resp]
   (log/info (keys resp))
@@ -43,13 +44,15 @@
   (log/debugf "request: %s"  [(:request-method request)
                               (:uri request)])
   (case [(:request-method request) (:uri request)]
-    [:get "/"] (some-> (resource-response "index.html" {:root "public"})
+    [:get "/"] (some-> (resource-response "newconsumer.html" {:root "public"})
                        (content-type "text/html; charset=utf-8"))
     [:get "/consumer"] (some-> (resource-response "index.html" {:root "public"})
-                       (content-type "text/html; charset=utf-8"))
+                               (content-type "text/html; charset=utf-8"))
+    [:get "/new-consumer"] (some-> (resource-response "newconsumer.html" {:root "public"})
+                                   (content-type "text/html; charset=utf-8"))
     [:get "/producer"] (some-> (resource-response "produce.html" {:root "public"})
-                              (content-type "text/html; charset=utf-8"))
-    [:get "/auth"] (some-> (resource-response "index.html" {:root "public"})
+                               (content-type "text/html; charset=utf-8"))
+    [:get "/auth"] (some-> (resource-response "newconsumer.html" {:root "public"})
                            (response/set-cookie "kafkus-username"
                                                 (get-in request
                                                         [:basic-authentication

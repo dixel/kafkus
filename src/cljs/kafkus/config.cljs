@@ -26,6 +26,8 @@
            :left-panel nil
            :topics []
            :schemas []
+           :status '()
+           :errors '()
            :message-count 0
            :middle nil})))
 
@@ -51,11 +53,17 @@
 (def middle
   (reagent/cursor state [:middle]))
 
+(def errors
+  (reagent/cursor state [:errors]))
+
 (def play?
   (reagent/cursor state [:play?]))
 
 (def connected?
   (reagent/cursor state [:connected]))
+
+(def status
+  (reagent/cursor state [:status]))
 
 (def plaintext-jaas-template
   "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";")
@@ -65,7 +73,7 @@
    :schema-registry-url (get @state :schema-registry-url)
    :auto.offset.reset (get @state :auto.offset.reset)
    :schema (get-in @state [:schemas (get @state :schema)])
-   :mode (get @state :mode)
+   :mode (or (get @state :value.deserializer) (get @state :mode))
    :payload (u/json->clj @payload)
    :rate (count-rate (get @state :rate default-rate))
    :topic (get @state :topic)
