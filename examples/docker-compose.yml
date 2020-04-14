@@ -48,7 +48,7 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
 
   kafkus:
-    image: dixel/kafkus:0.2.0.40
+    image: dixel/kafkus:latest
     hostname: kafkus
     depends_on:
       - zookeeper

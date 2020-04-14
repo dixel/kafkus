@@ -33,7 +33,7 @@ docker run -p 4040:4040 -v $PWD/schemas-repository:/tmp \
     -e DEFAULT_AUTO_OFFSET_RESET=earliest \
     -e DEFAULT_RATE=10 \
     -e DEFAULT_LIMIT=1000 \
-    -ti dixel/kafkus:0.2.0.39
+    -ti dixel/kafkus:latest
 ```
 
 ## Configuration
