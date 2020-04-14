@@ -101,7 +101,7 @@
    (js/setTimeout (fn []
                     (log/info "registering modal close events...")
                     (try
-                      (.on (js/$ "#kafka-settings")
+                      (.on (js/jQuery "#kafka-settings")
                            "hide.bs.modal"
                            (fn []
                              ((:send! @state)
