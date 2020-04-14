@@ -101,11 +101,13 @@
    (js/setTimeout (fn []
                     (log/info "registering modal close events...")
                     (try
-                      (.on (js/jQuery "#kafka-settings")
-                           "hide.bs.modal"
-                           (fn []
-                             ((:send! @state)
-                              [:kafkus/list-topics (get-config)])))
+                      (.call
+                       (goog.object/get (js/jQuery "#kafka-settings") "on")
+                       (js/jQuery "#kafka-settings")
+                       "hide.bs.modal"
+                       (fn []
+                         ((:send! @state)
+                          [:kafkus/list-topics (get-config)])))
                       (catch :default e
                         (log/error "failed to register modal close events: " e)
                         (try-register-settings (* 2 timeout))))) timeout)))
