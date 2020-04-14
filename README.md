@@ -47,7 +47,7 @@ kafka cluster with `docker-compose`. Check [examples](./examples).
 
 ## Thanks
 
-For great UI/UX contribution and one weekend wasted together to [@vbldra](https://www.freelancer.in/u/vbldra#)
+For great UI/UX contribution and one weekend wasted together to [@vbldra](https://www.behance.net/vbldra)
 
 ## License
 
