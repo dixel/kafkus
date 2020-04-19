@@ -6,3 +6,7 @@ docker-compose up -d
 # ... wait for all the dependencies to get downloaded and then ~ 1 minute for everything to start
 # go to http://localhost:4040, pick a topic from the dropdown menu and hit ▶ to start consuming.
 ```
+
+You should be able to see something like this:
+
+![](../pic/kafkus.gif)
