@@ -52,4 +52,4 @@
     (Thread/sleep dummy-producer-sleep)
     (let [msg (get-dummy-producer-config)]
       (log/info "producing to kafka: " msg)
-      (kafka/produce! (get-dummy-producer-config)))))
+      (kafka/produce! msg))))
