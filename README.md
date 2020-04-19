@@ -45,8 +45,8 @@ Check [examples](./examples) for docker-compose with a sample kafka cluster and 
 
 - Supporting other ser/de formats (protobuf, thrift).
 - Command-line utility (hopefully a native binary built with GraalVM) to work with the server through WebSockets interface.
-- Dump to a file instead of having the output on the screen
-- Provide a one-time URL with all the configurations and SMT in place
+- Dump output to a file
+- Provide one-time URL with all the configurations and SMT in place
 
 ## Thanks
 
