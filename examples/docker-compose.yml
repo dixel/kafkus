@@ -66,3 +66,23 @@ services:
       AVRO_SCHEMAS_PATH: /opt/avro-schemas
       LOG_LEVEL: debug
       DEFAULT_SECURITY_PROTOCOL: PLAINTEXT
+
+  kafkus-dummy-producer:
+    build: dummy-producer
+    hostname: kafkus-dummy-producer
+    depends_on:
+      - zookeeper
+      - broker
+      - schema-registry
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2"
+      DEFAULT_SCHEMA_REGISTRY_URL: "http://schema-registry:8081/"
+      DEFAULT_BOOTSTRAP_SERVER: "broker:29092"
+      DEFAULT_MODE: "avro-schema-registry"
+      DEFAULT_AUTO_OFFSET_RESET: earliest
+      DUMMY_PRODUCER_SLEEP: 500
+      DUMMY_PRODUCER_PAYLOAD_SIZE: 10000
+      LOAD_DEFAULT_CONFIG: "true"
+      AVRO_SCHEMAS_PATH: /opt/avro-schemas
+      LOG_LEVEL: debug
+      DEFAULT_SECURITY_PROTOCOL: PLAINTEXT
