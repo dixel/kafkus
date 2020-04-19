@@ -10,12 +10,12 @@
 Provide a minimalistic way to inspect, what kind of data is available in a certain Kafka topic.
 
 ## Features
-- Tail log of a kafka topic (payload, key, offset information)
+- Tail log of kafka topic (payload, key, offset information)
 - 4 ways of deserializing:
-    - confluent schema registry (needs valid schema-registry-url) - handles the schema change on the flight
-    - raw text format
+    - confluent schema registry (needs valid schema-registry-url)
+    - raw
     - json
-- Rate limiting (server-side, to also limit the load on kafka side).
+- Rate limiting (server-side, to also limit the load this tool puts on kafka).
 - Single message transformation (client-side) with https://github.com/borkdude/sci
 
 ## Running Kafkus
@@ -23,7 +23,7 @@ Provide a minimalistic way to inspect, what kind of data is available in a certa
 You can configure Kafkus with defaults using environment variables and run it using docker, or provide the configuration at runtime in the UI.
 
 ```bash
-docker run -p 4040:4040 -v $PWD/schemas-repository:/tmp \
+docker run -p 4040:4040 \
     -e LOG_LEVEL=debug \
     -e AVRO_SCHEMAS_PATH=/tmp \
     -e LOAD_DEFAULT_CONFIG=true \
@@ -37,17 +37,22 @@ docker run -p 4040:4040 -v $PWD/schemas-repository:/tmp \
 ```
 
 ## Configuration
-Kafkus is made mainly to be embeddable into existing dockerized ecosystem (K8S/docker-compose). Therefore, it's quite easy to start it together with a sample
-kafka cluster with `docker-compose`. Check [examples](./examples).
+Kafkus is made mainly to be embeddable into existing dockerized ecosystem (K8S/docker-compose).
+You can use it in your existing environment with minimal effort.
+Check [examples](./examples) for docker-compose with a sample kafka cluster and dummy producer.
 
 ## Roadmap
 
 - Supporting other ser/de formats (protobuf, thrift).
 - Command-line utility (hopefully a native binary built with GraalVM) to work with the server through WebSockets interface.
+- Dump output to a file
+- Provide one-time URL with all the configurations and SMT in place
 
 ## Thanks
 
-For great UI/UX contribution and one weekend wasted together to [@vbldra](https://www.behance.net/vbldra)
+For great UI/UX contribution and one weekend wasted together to [@vbldra](https://www.behance.net/vbldra).
+
+To all the maintainers of the used libraries.
 
 ## License
 
