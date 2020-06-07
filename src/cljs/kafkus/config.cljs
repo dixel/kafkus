@@ -65,6 +65,21 @@
 (def status
   (reagent/cursor state [:status]))
 
+(def producer-enabled
+  (reagent/cursor state [:producer-enabled]))
+
+(def topic-schema
+  (reagent/cursor state [:topic-schema]))
+
+(def schema-status
+  (reagent/cursor state [:schema-status]))
+
+(def send-status
+  (reagent/cursor state [:send-status]))
+
+(def topic-key
+  (reagent/cursor state [:topic-key]))
+
 (def plaintext-jaas-template
   "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";")
 
@@ -74,6 +89,7 @@
    :auto.offset.reset (get @state :auto.offset.reset)
    :schema (get-in @state [:schemas (get @state :schema)])
    :mode (or (get @state :value.deserializer) (get @state :mode))
+   :key @topic-key
    :payload (u/json->clj @payload)
    :rate (count-rate (get @state :rate default-rate))
    :topic (get @state :topic)
