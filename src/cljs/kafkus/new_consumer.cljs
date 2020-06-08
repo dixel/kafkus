@@ -124,9 +124,9 @@
           [:div.col-8
            [bind-fields (get-producer-topic-key) state]]]
          [:div.row.m-2
-          [:div.col
+          [:div.col-6
            [bind-fields (get-producer-payload-textarea) state]]
-          [:div.col
+          [:div.col-6
            [:pre (str "// schema from schema-registry\n" @topic-schema)]]]
          [:div.row.m-3
           [:button.btn.btn-success.btn-block
