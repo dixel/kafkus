@@ -132,13 +132,9 @@
            (start-server)
            (log/info js.window.location.pathname)
            (case js.window.location.pathname
-             "/consumer" (reagent/render [consumer/app]
-                                         (js/document.getElementById "app"))
              "/new-consumer" (do (reagent/render [new-consumer/app]
                                                  (js/document.getElementById "app"))
                                  (try-register-settings))
-             "/producer" (reagent/render [producer/app]
-                                         (js/document.getElementById "app"))
              (do (reagent/render [new-consumer/app]
                                  (js/document.getElementById "app"))
                  (try-register-settings))))
