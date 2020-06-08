@@ -236,7 +236,7 @@
                      ((:send! @state)
                       [:kafkus/get-topic-sample-value (assoc (get-config) :topic i)])
                      ((:send! @state)
-                       [:kafkus/get-schema (assoc (get-config) :topic i)])
+                      [:kafkus/get-schema (assoc (get-config) :topic i)])
                      )} i])]
     [:button.btn.rounded-0
      {:title "consume from topic"
@@ -272,7 +272,7 @@
                           (not @play?))]
          {:title "produce to topic"
           :class (if enabled
-                   "bg-danger"
+                   "bg-success"
                    ["btn-light" "disabled"])
           :data-toggle (if enabled "modal" "")
           :data-target "#producer"})
@@ -281,7 +281,7 @@
      {:class (if @connected?
                "text-success"
                "text-danger")
-      :disabled play?
+      :disabled @play?
       :on-click (fn []
                   (when-not @play?
                     ((:send! @state)
