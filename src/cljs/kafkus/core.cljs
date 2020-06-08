@@ -13,11 +13,13 @@
                                    schemas
                                    state
                                    status
-                                   topics]]
+                                   topics
+                                   topic-schema
+                                   schema-status
+                                   send-status
+                                   topic-key]]
             [kafkus.utils :as u]
-            [kafkus.consumer :as consumer]
             [kafkus.new-consumer :as new-consumer]
-            [kafkus.producer :as producer]
             [goog.string :as gstring]
             [goog.string.format]
             [reagent-forms.core :refer [bind-fields]]
@@ -41,7 +43,8 @@
                              :mode mode
                              :value.deserializer mode
                              :username (js/decodeURIComponent (cookies/get-raw "kafkus-username"))
-                             :password (js/decodeURIComponent (cookies/get-raw "kafkus-password")))
+                             :password (js/decodeURIComponent (cookies/get-raw "kafkus-password"))
+                             :producer-enabled (get defaults :producer-enabled))
                       (assoc-in [:bootstrap :servers]
                                 (get defaults :bootstrap.servers))))
     (u/set-dom-element "security.protocol" (get defaults :security.protocol))
@@ -90,8 +93,18 @@
         [:chsk/recv :kafkus/get-topic-sample-value] (->> msg
                                                          u/->json
                                                          u/pretty-json
-                                                         (u/set-dom-element "payload")
-                                                         (reset! payload))
+                                                         (reset! payload)
+                                                         (u/set-dom-element "payload"))
+        [:chsk/recv :kafkus/get-schema] (do
+                                          (reset! schema-status {:status :ok})
+                                          (->> msg
+                                                 u/->json
+                                                 u/pretty-json
+                                                 (reset! topic-schema)))
+        [:chsk/recv :kafkus/get-schema-error] (reset! schema-status {:status :error :message msg})
+        [:chsk/recv :kafkus/send-success] (do (reset! send-status (merge {:status :ok} msg))
+                                              (reset! topic-key (str "kafkus-" (random-uuid))))
+        [:chsk/recv :kafkus/send-error] (reset! send-status (merge {:status :error} msg))
         (log/debug "[cljs] unknown event: " event)))
     (recur)))
 
@@ -117,13 +130,9 @@
            (start-server)
            (log/info js.window.location.pathname)
            (case js.window.location.pathname
-             "/consumer" (reagent/render [consumer/app]
-                                         (js/document.getElementById "app"))
              "/new-consumer" (do (reagent/render [new-consumer/app]
                                                  (js/document.getElementById "app"))
                                  (try-register-settings))
-             "/producer" (reagent/render [producer/app]
-                                         (js/document.getElementById "app"))
              (do (reagent/render [new-consumer/app]
                                  (js/document.getElementById "app"))
                  (try-register-settings))))

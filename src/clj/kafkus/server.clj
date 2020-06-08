@@ -58,13 +58,18 @@
       (log/error "can't list topics: " (.getMessage e))
       [:kafkus/error (format "can't list topics: %s" (.getMessage e))])))
 
-(defn produce-message [config]
+(defn produce-message [config chsk-send! uid]
   (try
     (when producer-enabled
-      (kafka/produce! (assoc config :schema (kafka/get-schema-for-topic config))))
+      (kafka/produce! (assoc config :schema (kafka/get-schema-for-topic config))
+                      (fn [exception metadata]
+                        (if exception
+                          (chsk-send! uid [:kafkus/send-error {:exception exception
+                                                               :metadata metadata}])
+                          (chsk-send! uid [:kafkus/send-success {:metadata metadata}])))))
     (catch Exception e
       (log/error "can't produce message: " (.getMessage e))
-      [:kafkus/error (format "can't produce message: " (.getMessage e))])))
+      (chsk-send! uid [:kafkus/send-error {:exception (str "couldn't produce message: " (.getMessage e))}]))))
 
 (defn list-kafkus-schemas [config]
   [:kafkus/list-schemas (avros/list-schemas)])
@@ -80,7 +85,8 @@
       :sasl.jaas.config kafka/default-sasl-jaas-config
       :sasl.mechanism kafka/default-sasl-mechanism
       :security.protocol kafka/default-security-protocol
-      :auto.offset.reset kafka/default-auto-offset-reset}]
+      :auto.offset.reset kafka/default-auto-offset-reset
+      :producer-enabled producer-enabled}]
     [:kafkus/no-defaults nil]))
 
 (defn get-topic-sample-value [msg]
@@ -90,7 +96,14 @@
           {:error "producer functionality disabled on that setup"})
         (catch Exception e
           (log/error "failed to generate default payload: " e)
-          {:error (.getMessage e)}))])
+          {:error (str "failed to generate sample payload: " (.getMessage e))}))])
+
+(defn get-schema-for-topic [msg]
+  (try
+    [:kafkus/get-schema (kafka/get-schema-for-topic msg)]
+    (catch Exception e
+      (log/error "unable to fetch schema for topic " (:topic msg) ": " (.getMessage e))
+      [:kafkus/get-schema-error (str "can't fetch schema for topic " (:topic msg) ": " (.getMessage e))])))
 
 (defn start-kafkus-server []
   (a/thread
@@ -108,7 +121,8 @@
           :kafkus/list-schemas (async-reply #(list-kafkus-schemas msg))
           :kafkus/get-defaults (async-reply #(get-defaults))
           :kafkus/get-topic-sample-value (async-reply #(get-topic-sample-value msg))
-          :kafkus/send (produce-message msg)
+          :kafkus/get-schema (async-reply #(get-schema-for-topic msg))
+          :kafkus/send (produce-message msg chsk-send! uid)
           :chsk/uidport-close (stop-kafkus-consumer uid)
           (log/debug "unknown message with id " msg-id))))
     (recur)))

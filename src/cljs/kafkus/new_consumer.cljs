@@ -11,7 +11,13 @@
                                    default-rate
                                    middle
                                    reverse-count-rate
-                                   connected?]]
+                                   connected?
+                                   producer-enabled
+                                   topic-schema
+                                   schema-status
+                                   payload
+                                   send-status
+                                   topic-key]]
             [kafkus.info :refer [info]]
             [cljs.core.async :as a]
             [cljs.pprint :as pprint]
@@ -55,7 +61,7 @@
 (defn dropdown-text [id & {:keys [type]}]
   [bind-fields (input-row id (or type :text)) state])
 
-(defn modal []
+(defn kafka-settings []
   [:div#kafka-settings.modal.fade
    {:tabIndex -1
     :role "dialog"
@@ -80,11 +86,66 @@
        (dropdown-menu :value.deserializer ["raw" "json" "avro-schema-registry"])
        (dropdown-menu :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL"])
        (when (#{"SASL_PLAINTEXT" "SASL_SSL"} (@state :security.protocol))
-         (dropdown-menu :sasl.mechanism ["PLAIN" "SSL"]))
-       (when (#{"SASL_PLAINTEXT" "SASL_SSL"} (@state :security.protocol))
-         (dropdown-text :username))
-       (when (#{"SASL_PLAINTEXT" "SASL_SSL"} (@state :security.protocol))
+         (dropdown-menu :sasl.mechanism ["PLAIN" "SSL"])
+         (dropdown-text :username)
          (dropdown-text :password :type :password))]]]]])
+
+(defn get-producer-payload-textarea []
+  [:textarea.form-control.h-100 {:id :payload :field :textarea :defaultValue @payload}])
+
+(defn get-producer-topic-key []
+  [:input.form-control
+       {:type :text
+        :field :text
+        :id :topic-key}])
+
+(defn producer []
+  [:div#producer.modal.fade
+   {:tabIndex -1
+    :role "dialog"
+    :aria-labelledby "producer-label"
+    :aria-hidden "true"}
+   [:div.modal-dialog.modal-lg {:role "document"}
+    [:div.modal-content
+     [:div.modal-header
+      [:h5.modal-title "Produce to " (@state :topic)]
+      [:button.close
+       {:type "button"
+        :data-dismiss "modal"
+        :aria-label "Close"}
+       [:span
+        {:aria-hidden "true"}
+        [:i.fa.fa-times]]]]
+     [:div.modal-body
+      (if (= :ok (:status @schema-status))
+        [:div.container
+         [:div.row
+          [:label.col-4 "Topic key (string)"]
+          [:div.col-8
+           [bind-fields (get-producer-topic-key) state]]]
+         [:div.row.m-2
+          [:div.col
+           [bind-fields (get-producer-payload-textarea) state]]
+          [:div.col
+           [:pre (str "// schema from schema-registry\n" @topic-schema)]]]
+         [:div.row.m-3
+          [:button.btn.btn-success.btn-block
+           {:on-click (fn []
+                        (log/info "publishing to kafka...")
+                        ((:send! @state) [:kafkus/send (get-config)]))}
+           (str "Publish to " (@state :topic))]]
+         (case (:status @send-status)
+           :ok [:div.alert-success (str "published offset "
+                                        (get-in @send-status [:metadata :dvlopt.kafka/offset])
+                                        " partition "
+                                        (get-in @send-status [:metadata :dvlopt.kafka/partition])
+                                        " timestamp "
+                                        (get-in @send-status [:metadata :dvlopt.kafka/timestamp]))]
+           :error [:div.alert-danger (str "error publishing: " (:exception @send-status))]
+           [:div])]
+        [:div.container
+         [:div.alert-danger.m-2 (str "couldn't fetch schema for topic " (@state :topic))]
+         [:pre (:message @schema-status)]])]]]])
 
 (defn modal-info []
   [:div#kafkus-info.modal.fade
@@ -158,7 +219,8 @@
      {:href "#"
       :id "topics-dropdown"
       :role "button"
-      :data-toggle "dropdown"
+      :data-toggle (when-not @play? "dropdown")
+      :disabled @play?
       :aria-haspopup "true"
       :aria-expanded "false"}
      "topic"]
@@ -169,16 +231,21 @@
        [:a.dropdown-item
         {:on-click (fn []
                      (swap! status #(conj % (str "topic " i " selected")))
-                     (swap! state #(assoc % :topic i)))} i])]
+                     (swap! state #(assoc % :topic i))
+                     (reset! topic-key (str "kafkus-" (random-uuid)))
+                     ((:send! @state)
+                      [:kafkus/get-topic-sample-value (assoc (get-config) :topic i)])
+                     ((:send! @state)
+                      [:kafkus/get-schema (assoc (get-config) :topic i)])
+                     )} i])]
     [:button.btn.rounded-0
-     {:class (if (and @connected?
+     {:title "consume from topic"
+      :class (if (and @connected?
                       (@state :topic))
                (if @play?
                  "btn-warning"
                  "btn-success")
                "btn-light")
-      :disabled (when-not (and @connected?
-                               (@state :topic)) "true")
       :on-click (fn []
                   (let [{:keys [send!]} @state]
                     (if @play?
@@ -198,19 +265,34 @@
      (if @play?
        [:i.fas.fa-stop]
        [:i.fas.fa-play])]
+    (when @producer-enabled
+      [:button.btn.rounded-0
+       (let [enabled (and @connected?
+                          (@state :topic)
+                          (not @play?))]
+         {:title "produce to topic"
+          :class (if enabled
+                   "btn-success"
+                   ["btn-light" "disabled"])
+          :data-toggle (if enabled "modal" "")
+          :data-target "#producer"})
+       [:i.fa.fa-circle]])
     [:button.btn.bg-light.text-truncate
      {:class (if @connected?
                "text-success"
                "text-danger")
+      :disabled @play?
       :on-click (fn []
-                  ((:send! @state)
-                   [:kafkus/list-topics (get-config)]))}
+                  (when-not @play?
+                    ((:send! @state)
+                     [:kafkus/list-topics (get-config)])))}
      (if @connected?
        [:i.fa.fa-link]
        [:i.fa.fa-unlink])
      (str " " (get-in @state [:bootstrap :servers]) " ")]
     [:button.btn.bg-light
-     {:data-toggle "modal"
+     {:class (when @play? "disabled")
+      :data-toggle (when-not @play? "modal")
       :data-target "#kafka-settings"}
      [:i.fa.fa-cog]]]])
 
@@ -265,7 +347,8 @@ key    - message key (as string)
    {:min-height "100%"
     :height "100%"}
    (menu)
-   (modal)
+   (kafka-settings)
+   (producer)
    (output)
    (bottom)
    (modal-info)])

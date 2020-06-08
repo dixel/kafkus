@@ -201,15 +201,20 @@
   (a/go (a/>! control-channel :stop)))
 
 (defn produce!
-  [{:keys [bootstrap-servers topic payload mode schema]
-    :as config}]
-  (with-open [producer
-              (K.out/producer
-               {::K/nodes (get-nodes-from-bootstraps bootstrap-servers)
-                ::K/serializer.key (K/serializers :string)
-                ::K/serializer.value (get-mode-serializer mode config)
-                ::K.out/configuration (walk/stringify-keys config)})]
-    (K.out/send producer
-                {::K/topic topic
-                 ::K/key (str "kafkus-" (java.util.UUID/randomUUID))
-                 ::K/value payload})))
+  ([config]
+   (produce! config (fn [exception metadata]
+                      (log/debug "published message to kafka: " exception "; " metadata))))
+  ([{:keys [bootstrap-servers topic payload mode schema]
+     :as config}
+    callback]
+   (with-open [producer
+               (K.out/producer
+                {::K/nodes (get-nodes-from-bootstraps bootstrap-servers)
+                 ::K/serializer.key (K/serializers :string)
+                 ::K/serializer.value (get-mode-serializer mode config)
+                 ::K.out/configuration (walk/stringify-keys config)})]
+     (K.out/send producer
+                 {::K/topic topic
+                  ::K/key (get config :key (str "kafkus-" (java.util.UUID/randomUUID)))
+                  ::K/value payload}
+                 callback))))
