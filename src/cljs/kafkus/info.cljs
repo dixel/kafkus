@@ -53,6 +53,4 @@
    [:div.row.p-2
     [:h2 "Feedback"]]
    [:div.row.p-2
-    [:p "Please, report any feedback, issues, suggestions on " [:a {:href "https://github.com/dixel/kafkus"} "GitHub"]]]
-   [:div.row.p-2
-    [:p "If you're missing the old UI/functionality - it's still there: " [:a {:href "./consumer"} "[Old UI]"]]]])
+    [:p "Please, report any feedback, issues, suggestions on " [:a {:href "https://github.com/dixel/kafkus"} "GitHub"]]]])

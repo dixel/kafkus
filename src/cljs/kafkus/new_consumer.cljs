@@ -272,7 +272,7 @@
                           (not @play?))]
          {:title "produce to topic"
           :class (if enabled
-                   "bg-success"
+                   "btn-success"
                    ["btn-light" "disabled"])
           :data-toggle (if enabled "modal" "")
           :data-target "#producer"})

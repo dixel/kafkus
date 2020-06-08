@@ -19,9 +19,7 @@
                                    send-status
                                    topic-key]]
             [kafkus.utils :as u]
-            [kafkus.consumer :as consumer]
             [kafkus.new-consumer :as new-consumer]
-            [kafkus.producer :as producer]
             [goog.string :as gstring]
             [goog.string.format]
             [reagent-forms.core :refer [bind-fields]]
