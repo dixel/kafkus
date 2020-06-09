@@ -86,9 +86,10 @@
        (dropdown-menu :value.deserializer ["raw" "json" "avro-schema-registry"])
        (dropdown-menu :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL"])
        (when (#{"SASL_PLAINTEXT" "SASL_SSL"} (@state :security.protocol))
-         (dropdown-menu :sasl.mechanism ["PLAIN" "SSL"])
-         (dropdown-text :username)
-         (dropdown-text :password :type :password))]]]]])
+         [:div
+          (dropdown-menu :sasl.mechanism ["PLAIN" "SSL"])
+          (dropdown-text :username)
+          (dropdown-text :password :type :password)])]]]]])
 
 (defn get-producer-payload-textarea []
   [:textarea.form-control.h-100 {:id :payload :field :textarea :defaultValue @payload}])
