@@ -11,3 +11,23 @@
   padding: 5px;
   color: white;
 }
+
+/* Clean button*/
+.clean-all {
+    background-color:#C2404D;
+    position: fixed;
+    z-index: 1;
+    bottom: 25.5vh;
+    right: -95px;
+    padding: 10px 30px;
+    border-radius: 3px;
+    transition: transform 0.1s;
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+}
+
+.clean-all:hover {
+    transform: translateX(-90px);
+}
