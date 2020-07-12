@@ -204,7 +204,10 @@
              (catch :default e
                [:div
                 [:font.text-danger (str "failed executing: " e "\noriginal message:\n")]
-                (u/->json i)])))]))]])
+                (u/->json i)])))]))]
+   [:button.clean-all
+    {:on-click (fn [_] (swap! state #(update % :middle (constantly []))))}
+    [:i.fas.fa-backspace] " Clear"]])
 
 
 (defn menu []
