@@ -185,14 +185,15 @@
     (for [i (:middle @state)]
       ^{:key (.random js/Math)}
       (let [{:keys [partition offset key value decoded]} i]
-        [:div [:font {:color "#5bc0de "}
-               (apply str (repeat 5 "-"))
-               (str  " partition " partition " - offset " offset " - key '"
-                     (str/replace (or key "") #"\n|\r" "") ; avoid corrupting output if non-string keys contain newline symbols
-                     "' "
-                     (apply str (repeat 20 "-")) "\n")]
+        [:div
          (if (empty? @smt)
-           (:decoded i)
+           [:div [:font {:color "#5bc0de "}
+                  (apply str (repeat 5 "-"))
+                  (str  " partition " partition " - offset " offset " - key '"
+                        (str/replace (or key "") #"\n|\r" "") ; avoid corrupting output if non-string keys contain newline symbols
+                        "' "
+                        (apply str (repeat 20 "-")) "\n")]
+            (:decoded i)]
            (try
              (when-let [result (sci/eval-string @smt {:bindings {'i i
                                                                  'partition partition
@@ -204,10 +205,10 @@
              (catch :default e
                [:div
                 [:font.text-danger (str "failed executing: " e "\noriginal message:\n")]
-                (u/->json i)])))]))]
-   [:button.clean-all
-    {:on-click (fn [_] (swap! state #(update % :middle (constantly []))))}
-    [:i.fas.fa-backspace] " Clear"]])
+                (u/->json i)])))]))
+    [:button.clean-all
+     {:on-click (fn [_] (swap! state #(update % :middle (constantly []))))}
+     [:i.fas.fa-backspace] " Clear"]]])
 
 
 (defn menu []
