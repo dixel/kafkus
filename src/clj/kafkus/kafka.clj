@@ -96,7 +96,15 @@
     (fn [data _]
       (if (nil? data)
         nil
-        (.deserialize deser (:topic config) data)))))
+        (try
+          (.deserialize deser (:topic config) data)
+          (catch Exception e
+            (log/error "failed deserializing data: " (.getMessage e))
+            {:error (.getMessage e)})
+          (catch Error e
+            (log/error "failed deserializing data: " (.getMessage e))
+            {:error (.getMessage e)}))))))
+
 
 (defn get-schema-for-topic [config]
   (let [schema-registry-client
