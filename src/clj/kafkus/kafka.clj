@@ -11,6 +11,7 @@
             [kafka-avro-confluent.v2.serializer :as ser]
             [kafkus.avro :as kavro]
             [abracad.avro :as abracad-avro]
+            [abracad.avro.util :as abracad-util]
             [clojure.string :as str]
             [clojure.walk :as walk]
             [clojure.core.async :as a]
@@ -97,7 +98,8 @@
       (if (nil? data)
         nil
         (try
-          (.deserialize deser (:topic config) data)
+          (binding [abracad-util/*mangle-names* false]
+            (.deserialize deser (:topic config) data))
           (catch Exception e
             (log/error "failed deserializing data: " (.getMessage e))
             {:error (.getMessage e)})

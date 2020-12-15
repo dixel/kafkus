@@ -56,6 +56,14 @@
           \"type\": \"string\"
         },
         {
+          \"name\": \"someEnum\",
+          \"type\": {
+            \"type\": \"enum\",
+            \"name\": \"SomeEnum\",
+            \"symbols\": [\"SINGLE\", \"DOUBLE_WORD_SNAKE\", \"DOUBLE-WORD-DASH\"]
+          }
+        },
+        {
           \"name\": \"stringField\",
           \"type\": \"string\",
           \"default\": \"\"
