@@ -42,7 +42,7 @@
      :channel input
      :auto.offset.reset "earliest"
      :enable.auto.commit false
-     :topic "-kafkus-schema-registry"
+     :topic "-kafkus-enum"
      :schema "{
         \"type\": \"record\",
         \"name\": \"sampleSchema\",
@@ -60,7 +60,7 @@
           \"type\": {
             \"type\": \"enum\",
             \"name\": \"SomeEnum\",
-            \"symbols\": [\"SINGLE\", \"DOUBLE_WORD_SNAKE\", \"DOUBLE-WORD-DASH\"]
+            \"symbols\": [\"SINGLE\", \"DOUBLE_WORD\", \"DOUBLE_WORD_SNAKE\"]
           }
         },
         {
@@ -87,6 +87,7 @@
      :payload {:id (swap! incer inc)
                :name "Amazing User"
                :stringField "produced some test data"
+               :someEnum "DOUBLE_WORD_SNAKE"
                :dateField 0}
      :group.id (str "kafkus-consumer-" (str (java.util.UUID/randomUUID)))})
 
