@@ -87,7 +87,7 @@
        (dropdown-menu :security.protocol ["PLAINTEXT" "SASL_PLAINTEXT" "SASL_SSL"])
        (when (#{"SASL_PLAINTEXT" "SASL_SSL"} (@state :security.protocol))
          [:div
-          (dropdown-menu :sasl.mechanism ["PLAIN" "SSL"])
+          (dropdown-menu :sasl.mechanism ["PLAIN" "SSL" "SCRAM-SHA-256"])
           (dropdown-text :username)
           (dropdown-text :password :type :password)])]]]]])
 
