@@ -80,8 +80,10 @@
 (def topic-key
   (reagent/cursor state [:topic-key]))
 
-(def plaintext-jaas-template
-  "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";")
+(defn get-sasl-jaas-config [sasl-mechanism]
+  (if-not (= sasl-mechanism "PLAIN")
+    "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";"
+    "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";"))
 
 (defn get-config []
   {:bootstrap-servers (get-in @state [:bootstrap :servers])
@@ -95,8 +97,7 @@
    :topic (get @state :topic)
    :security.protocol (get @state :security.protocol)
    :sasl.mechanism (get @state :sasl.mechanism)
-   :sasl.jaas.config (when-let [jaas (get @state :sasl.jaas.config
-                                          plaintext-jaas-template)]
+   :sasl.jaas.config (when-let [jaas (get-sasl-jaas-config (get @state :sasl.mechanism))]
                        (gstring/format jaas
                                        (get @state :username)
                                        (get @state :password)))})
